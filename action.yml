@@ -1,13 +1,22 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: 'SmartLint'
+author: 'Kamil Rybacki'
+description: 'SmartLint is a GitHub Action that runs a linter command on the files that have changed between commits and any other files previously unchecked.'
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
+  command:
+    description: 'The command to run to lint the files e.g. pylint for Python files.'
     required: true
-    default: '1000'
+  flags:
+    description: 'Flags to pass to the linter command.'
+    required: false
+  regex:
+    description: 'Regex to use to match the files to lint.'
+    required: true
+  ignore:
+    description: 'Regex to use to match the files to ignore.'
+    required: false
 outputs:
-  time: # output will be available to future steps
-    description: 'The current time after waiting'
+  linter-log:
+    description: 'Output of the linter ran as a part of this action.'
 runs:
   using: 'node16'
   main: 'dist/index.js'

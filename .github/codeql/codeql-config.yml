@@ -1,5 +1,5 @@
-name: "javascript-action CodeQL config"
+name: "smart-lint CodeQL config"
 
-paths-ignore: 
+paths-ignore:
   - node_modules
   - dist
