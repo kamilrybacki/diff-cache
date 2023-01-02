@@ -18,13 +18,20 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
     - run: npm ci
-    - run: npm run build
     - run: npm test
 
   live-tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - run: npm ci
+    - run: npm run build
     - uses: ./
       with:
         command: 'pylint' # Use pylint to lint Python files
