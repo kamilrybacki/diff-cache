@@ -1,13 +1,20 @@
 import * as core from '@actions/core';
-import { check, update } from './src/stage';
+import check from './src/check';
+import update from './src/update';
+import Secrets from './src/hooks/secrets';
 
 async function run() {
   try {
-    core.info((new Date()).toTimeString());
     const include = core.getInput('regex');
-    core.info(`Using regex: ${include}`);
     const exclude = core.getInput('ignore');
+
+    core.info(`Using regex: ${include}`);
     core.info(`Using ignore: ${exclude}`);
+
+    await Secrets.access().then((secrets: Secrets) => {
+      core.info(`Repo public key: ${secrets.repoPublicKey}`);
+      core.info(`Repo public key id: ${secrets.repoPublicKeyId}`);
+    });
 
     await check(include, exclude)
       .then(async (stagedFiles: string) => {
