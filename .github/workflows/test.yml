@@ -34,6 +34,4 @@ jobs:
     - run: npm run build
     - uses: ./
       with:
-        command: 'pylint' # Use pylint to lint Python files
-        flags: '--disable=missing-docstring' # Disable missing-docstring check
         regex: '.*\.py' # Regex for Python files to scan
