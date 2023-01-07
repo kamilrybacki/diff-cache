@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import check from './src/check';
 import update from './src/update';
-import StagedFilesCache from './src/hooks/secrets';
+import StagedFilesCache from './src/cache';
 
 async function run() {
   try {
