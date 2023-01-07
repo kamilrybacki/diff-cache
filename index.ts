@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import check from './src/check';
 import update from './src/update';
-import StagedFilesCache from './src/cache';
+import SimpleCache from './src/cache';
 
 async function run() {
   try {
@@ -11,9 +11,7 @@ async function run() {
     core.info(`Using regex: ${include}`);
     if (exclude) core.info(`Using ignore: ${exclude}`);
 
-    await StagedFilesCache.access().then((secrets: StagedFilesCache) => {
-      core.info(`Repo public key: ${secrets.repoPublicKey}`);
-      core.info(`Repo public key id: ${secrets.repoPublicKeyId}`);
+    await SimpleCache.access().then((cache: SimpleCache) => {
     });
 
     await check(include, exclude)
