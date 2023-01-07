@@ -5,8 +5,8 @@ import StagedFilesCache from './src/cache';
 
 async function run() {
   try {
-    const include = core.getInput('regex');
-    const exclude = core.getInput('ignore');
+    const include = core.getInput('include');
+    const exclude = core.getInput('exclude');
 
     core.info(`Using regex: ${include}`);
     if (exclude) core.info(`Using ignore: ${exclude}`);

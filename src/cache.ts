@@ -1,19 +1,22 @@
 import fs from 'fs/promises';
-import artifact from '@actions/artifact';
+import {
+  create as createArtifactClient,
+  ArtifactClient
+} from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
 import { RestEndpointMethods } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 
 class StagedFilesCache {
   repoPublicKey: string;
   repoPublicKeyId: string;
-  artifactClient: artifact.ArtifactClient;
+  artifactClient: ArtifactClient;
   authenticatedAPI: RestEndpointMethods;
 
   constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
-    this.artifactClient = artifact.create();
+    this.artifactClient = createArtifactClient();
   }
 
   static access = async (): Promise<StagedFilesCache> => {
