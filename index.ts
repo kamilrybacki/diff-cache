@@ -11,12 +11,11 @@ async function run() {
     core.info(`Using regex: ${include}`);
     if (exclude) core.info(`Using ignore: ${exclude}`);
 
-    await SimpleCache.access().then((cache: SimpleCache) => {
-    });
-
-    await check(include, exclude)
-      .then(async (stagedFiles: string) => {
-        stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');
+    await SimpleCache.access().then(async (cache: SimpleCache) => {
+      await check(include, exclude)
+        .then(async (stagedFiles: string) => {
+          stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');
+      });
     });
 
   } catch (error: unknown) {

@@ -62,11 +62,11 @@ class SimpleCache {
     const uppercaseTag = tag.toUpperCase();
     const encryptedValue = SimpleCache.encrypt.bind(this)(value);
     return await fs.writeFile(`/tmp/STAGED_FILES_${uppercaseTag}`, encryptedValue, 'utf-8')
-      .then(() => console.log(`Saved secret value for ${tag}: ${value}`))
+      .then(() => console.log(`Cached value for ${tag}: ${value}`))
       .then(async () => await this.artifactClient.uploadArtifact(`STAGED_FILES_${uppercaseTag}`, [tag], '/tmp')
         .then(() => console.log(`Uploaded artifact for ${tag}`)).then(() => true))
         .catch((error) => {
-          console.log(`Unable to save secret value for ${tag}: ${error}`);
+          console.log(`Unable to cache ${tag}: ${error}`);
           return false;
         }
       );
