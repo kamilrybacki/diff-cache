@@ -6,12 +6,13 @@ import SimpleCache from './src/cache.js';
 async function run() {
   try {
     const include = core.getInput('include');
-    const exclude = core.getInput('exclude');
-
     core.info(`Using regex: ${include}`);
+
+    const exclude = core.getInput('exclude');
     if (exclude) core.info(`Using ignore: ${exclude}`);
 
-    await SimpleCache.access().then(async (cache: SimpleCache) => {
+    const token = core.getInput('token');
+    await SimpleCache.access(token).then(async (cache: SimpleCache) => {
       await check(include, exclude)
         .then(async (stagedFiles: string) => {
           stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');

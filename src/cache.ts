@@ -33,8 +33,8 @@ class SimpleCache {
     return SimpleCache.__instance as SimpleCache;
   }
 
-  static initialize = async (): Promise<SimpleCache> => {
-    const authenticatedAPI = getOctokit(process.env.GITHUB_TOKEN as string).rest
+  static initialize = async (token: string): Promise<SimpleCache> => {
+    const authenticatedAPI = getOctokit(token).rest
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.actions.getRepoPublicKey({
       owner: context.repo.owner,

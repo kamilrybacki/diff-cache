@@ -30,8 +30,6 @@ jobs:
 
   live-tests:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.SMART_DIFF_TOKEN }}
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js 16.x
@@ -51,3 +49,4 @@ jobs:
     - uses: ./
       with:
         include: '.*\.py' # Regex for Python files to scan
+        token: ${{ secrets.GITHUB_TOKEN }}

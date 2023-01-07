@@ -5,6 +5,9 @@ inputs:
   include:
     description: 'Regex to use to match the files to include.'
     required: true
+  token:
+    description: 'Github token to use for the API calls.'
+    required: true
   exclude:
     description: 'Regex to use to match the files to ignore.'
     required: false
