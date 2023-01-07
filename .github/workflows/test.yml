@@ -49,4 +49,4 @@ jobs:
     - uses: ./
       with:
         include: '.*\.py' # Regex for Python files to scan
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.SMART_DIFF_TOKEN }}
