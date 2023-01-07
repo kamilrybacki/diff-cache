@@ -4,8 +4,6 @@ module.exports = {
   testEnvironment: 'node',
   transform: {
     '^.+\\.ts?$': 'ts-jest',
-     '^.+\\.(js|jsx)?$': 'babel-jest'
   },
-  moduleFileExtensions: ["js", "json", "jsx", "ts", "tsx", "json"],
   transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"],
 };
