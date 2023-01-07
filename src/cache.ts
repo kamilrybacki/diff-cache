@@ -5,7 +5,7 @@ import {
   ArtifactClient
 } from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
-import * as sodium from 'libsodium-wrappers';
+import * as sodium from 'libsodium-wrappers-sumo';
 import concatTypedArray from 'concat-typed-array';
 
 import { RestEndpointMethods } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
