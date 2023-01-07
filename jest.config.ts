@@ -1,7 +1,6 @@
 import type { Config } from '@jest/types'
 
 const config: Config.InitialOptions = {
-
   preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {
@@ -9,5 +8,6 @@ const config: Config.InitialOptions = {
     "^.+\\.(js|jsx)$": "babel-jest"
   },
   transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"],
+  setupFilesAfterEnv: ["<rootDir>/tests/setupTests.ts"],
 }
 export default config;
