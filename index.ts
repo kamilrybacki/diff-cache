@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
-import check from './src/check';
-import update from './src/update';
-import SimpleCache from './src/cache';
+import check from './src/check.js';
+import update from './src/update.js';
+import SimpleCache from './src/cache.js';
 
 async function run() {
   try {
