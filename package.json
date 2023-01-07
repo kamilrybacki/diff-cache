@@ -35,7 +35,9 @@
     "sodium": "^3.0.2"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.20.2",
     "@jest/globals": "^29.3.1",
+    "@types/babel__preset-env": "^7.9.2",
     "@types/libsodium-wrappers": "^0.7.10",
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.47.1",
