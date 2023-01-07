@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { context } from '@actions/github';
 import { describe, expect, test } from '@jest/globals';
-import SimpleCache from '../src/cache.js';
+import SimpleCache from '../src/cache';
 
 describe('SimpleCache encryption mechanisms', () => {
   const testMessage = 'This is a test message';
