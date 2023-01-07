@@ -5,7 +5,7 @@ import {
   ArtifactClient
 } from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
-import * as sodium from 'libsodium-wrappers';
+import * as libsodium from 'libsodium-wrappers';
 import concatTypedArray from 'concat-typed-array';
 
 import { RestEndpointMethods } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
@@ -16,11 +16,11 @@ class SimpleCache {
   repoPublicKeyId: string;
   artifactClient: ArtifactClient;
   authenticatedAPI: RestEndpointMethods;
-  sodiumInstance: typeof sodium;
+  sodiumInstance: typeof libsodium;
   nonceBytes: number;
   private static __instance: SimpleCache | undefined = undefined;
 
-  constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string, sodiumInstance: typeof sodium) {
+  constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string, sodiumInstance: typeof libsodium) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
@@ -54,8 +54,8 @@ class SimpleCache {
       .catch((error) => {
         throw new Error(`Unable to retrieve repo public key: ${error}`);
       });
-    await sodium.ready;
-    return new SimpleCache(authenticatedAPI, keyData.key, keyData.key_id, sodium);
+    await libsodium.ready;
+    return new SimpleCache(authenticatedAPI, keyData.key, keyData.key_id, libsodium);
   };
 
   load = async function (this: SimpleCache, tag: string): Promise<string> {
