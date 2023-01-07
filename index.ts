@@ -12,7 +12,7 @@ async function run() {
     if (exclude) core.info(`Using ignore: ${exclude}`);
 
     await StagedFilesCache.access().then((secrets: StagedFilesCache) => {
-      core.info(`Repo public key: ${secrets.repoPublicKey}`);
+      core.info(`Repo public key: ${secrets.#repoPublicKey}`);
       core.info(`Repo public key id: ${secrets.repoPublicKeyId}`);
     });
 

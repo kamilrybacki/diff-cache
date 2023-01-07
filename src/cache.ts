@@ -4,10 +4,10 @@ import { getOctokit, context } from '@actions/github';
 import { RestEndpointMethods } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 
 class StagedFilesCache {
-  authenticatedAPI: RestEndpointMethods;
   repoPublicKey: string;
   repoPublicKeyId: string;
   artifactClient: artifact.ArtifactClient;
+  authenticatedAPI: RestEndpointMethods;
 
   constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string) {
     this.authenticatedAPI = authenticatedAPI;
