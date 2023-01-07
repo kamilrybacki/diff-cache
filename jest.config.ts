@@ -8,6 +8,5 @@ const config: Config.InitialOptions = {
     "^.+\\.(js|jsx)$": "babel-jest"
   },
   transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"],
-  setupFiles: ["<rootDir>/tests/setupTests.ts"],
 }
 export default config;
