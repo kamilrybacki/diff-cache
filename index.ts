@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import check from './src/check';
 import update from './src/update';
-import Secrets from './src/hooks/secrets';
+import StagedFilesCache from './src/hooks/secrets';
 
 async function run() {
   try {
@@ -9,9 +9,9 @@ async function run() {
     const exclude = core.getInput('ignore');
 
     core.info(`Using regex: ${include}`);
-    core.info(`Using ignore: ${exclude}`);
+    if (exclude) core.info(`Using ignore: ${exclude}`);
 
-    await Secrets.access().then((secrets: Secrets) => {
+    await StagedFilesCache.access().then((secrets: StagedFilesCache) => {
       core.info(`Repo public key: ${secrets.repoPublicKey}`);
       core.info(`Repo public key id: ${secrets.repoPublicKeyId}`);
     });
