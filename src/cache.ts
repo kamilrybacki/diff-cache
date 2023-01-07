@@ -25,9 +25,9 @@ class SimpleCache {
     this.encryptor = encryptor;
   }
 
-  static access = async function (): Promise<SimpleCache> {
+  static access = async function (token: string): Promise<SimpleCache> {
     if (!SimpleCache.__instance) {
-      await SimpleCache.initialize()
+      await SimpleCache.initialize(token)
         .then((instance: SimpleCache) => SimpleCache.__instance = instance);
     }
     return SimpleCache.__instance as SimpleCache;
