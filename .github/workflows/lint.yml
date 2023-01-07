@@ -6,6 +6,10 @@ on:
       - main
       - 'releases/*'
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-markdown:
     runs-on: ubuntu-latest

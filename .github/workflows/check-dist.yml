@@ -5,6 +5,10 @@
 # We need to make sure the checked-in `index.js` actually matches what we expect it to be.
 name: Check dist
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
