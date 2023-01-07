@@ -5,28 +5,24 @@ import {
   ArtifactClient
 } from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
-import * as libsodium from 'libsodium-wrappers';
-import concatTypedArray from 'concat-typed-array';
+import SimpleCrypto from "simple-crypto-js"
 
 import { RestEndpointMethods } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
-import { RepoPublicKey } from './types';
 
 class SimpleCache {
   repoPublicKey: string;
   repoPublicKeyId: string;
   artifactClient: ArtifactClient;
   authenticatedAPI: RestEndpointMethods;
-  sodiumInstance: typeof libsodium;
-  nonceBytes: number;
+  encryptor: SimpleCrypto;
   private static __instance: SimpleCache | undefined = undefined;
 
-  constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string, sodiumInstance: typeof libsodium) {
+  constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string, encryptor: SimpleCrypto) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
     this.artifactClient = createArtifactClient();
-    this.sodiumInstance = sodiumInstance;
-    this.nonceBytes = sodiumInstance.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+    this.encryptor = encryptor;
   }
 
   static access = async function (): Promise<SimpleCache> {
@@ -40,8 +36,7 @@ class SimpleCache {
   static initialize = async (): Promise<SimpleCache> => {
     const authenticatedAPI = getOctokit(process.env.GITHUB_TOKEN as string).rest
     core.info('Successfully authenticated with GitHub API');
-    let keyData: RepoPublicKey = {key: '', key_id: ''};
-    await authenticatedAPI.actions.getRepoPublicKey({
+    return await authenticatedAPI.actions.getRepoPublicKey({
       owner: context.repo.owner,
       repo: context.repo.repo,
     })
@@ -49,13 +44,12 @@ class SimpleCache {
         core.info(`Successfully retrieved repo public key`);
         core.info(`Repo public key: ${data.key}`);
         core.info(`Repo public key id: ${data.key_id}`);
-        keyData = data;
+        const encryptor = new SimpleCrypto(data.key);
+        return new SimpleCache(authenticatedAPI, data.key, data.key_id, encryptor);
       })
       .catch((error) => {
         throw new Error(`Unable to retrieve repo public key: ${error}`);
-      });
-    await libsodium.ready;
-    return new SimpleCache(authenticatedAPI, keyData.key, keyData.key_id, libsodium);
+      })
   };
 
   load = async function (this: SimpleCache, tag: string): Promise<string> {
@@ -68,14 +62,7 @@ class SimpleCache {
   };
 
   decrypt = function (this: SimpleCache, encrypted: string): string {
-    core.info('Decrypting secret value');
-    const encryptedMessageArray = new TextEncoder().encode(encrypted);
-    const nonce = encryptedMessageArray.slice(0, this.nonceBytes);
-    const message = encryptedMessageArray.slice(this.nonceBytes);
-    core.info('Successfully decrypted secret value')
-    return this.sodiumInstance.crypto_aead_xchacha20poly1305_ietf_decrypt(
-      nonce, message, null, nonce, this.sodiumInstance.from_hex(this.repoPublicKey), "text"
-    );
+    return this.encryptor.decrypt(encrypted) as string;
   };
 
   save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
@@ -93,13 +80,7 @@ class SimpleCache {
   };
 
   encrypt = function (this: SimpleCache, message: string): string {
-    const nonce = this.sodiumInstance.randombytes_buf(this.nonceBytes);
-    const encryptedValue = this.sodiumInstance.crypto_aead_xchacha20poly1305_ietf_encrypt(
-      message, null, nonce, nonce, this.sodiumInstance.from_hex(this.repoPublicKey)
-    );
-    const encryptedMessageArray: Uint8Array = concatTypedArray(Uint8Array, nonce, encryptedValue);
-    core.info('Successfully encrypted secret value');
-    return new TextDecoder().decode(encryptedMessageArray);
+    return this.encryptor.encrypt(message) as string;
   };
 
 }
