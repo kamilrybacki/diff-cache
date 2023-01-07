@@ -18,6 +18,7 @@ class SimpleCache {
   authenticatedAPI: RestEndpointMethods;
   sodiumInstance: typeof _sodium;
   nonceBytes: number;
+  private static __instance: SimpleCache | undefined = undefined;
 
   constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string, sodiumInstance: typeof _sodium) {
     this.authenticatedAPI = authenticatedAPI;
@@ -28,7 +29,15 @@ class SimpleCache {
     this.nonceBytes = sodiumInstance.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
   }
 
-  static access = async (): Promise<SimpleCache> => {
+  static access = async function (): Promise<SimpleCache> {
+    if (!SimpleCache.__instance) {
+      await SimpleCache.initialize()
+        .then((instance: SimpleCache) => SimpleCache.__instance = instance);
+    }
+    return SimpleCache.__instance as SimpleCache;
+  }
+
+  static initialize = async (): Promise<SimpleCache> => {
     const authenticatedAPI = getOctokit(process.env.GITHUB_TOKEN as string).rest
     core.info('Successfully authenticated with GitHub API');
     let keyData: RepoPublicKey = {key: '', key_id: ''};
@@ -47,20 +56,31 @@ class SimpleCache {
       });
     await _sodium.ready;
     return new SimpleCache(authenticatedAPI, keyData.key, keyData.key_id, _sodium);
-  }
+  };
 
-  static load = async function (this: SimpleCache, tag: string): Promise<string> {
+  load = async function (this: SimpleCache, tag: string): Promise<string> {
     return await this.artifactClient.downloadArtifact(`STAGED_FILES_${tag.toUpperCase()}`, '/tmp')
       .then(async ({downloadPath}: {downloadPath: string}) => {
         console.log(`Downloaded artifact to ${downloadPath}`);
         return await fs.readFile(downloadPath, 'utf-8')
-          .then((encryptedValue: string) => SimpleCache.decrypt.bind(this)(encryptedValue))
+          .then((encryptedValue: string) => this.decrypt(encryptedValue))
       })
   };
 
-  static save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
+  decrypt = function (this: SimpleCache, encrypted: string): string {
+    core.info('Decrypting secret value');
+    const encryptedMessageArray = new TextEncoder().encode(encrypted);
+    const nonce = encryptedMessageArray.slice(0, this.nonceBytes);
+    const message = encryptedMessageArray.slice(this.nonceBytes);
+    core.info('Successfully decrypted secret value')
+    return this.sodiumInstance.crypto_aead_xchacha20poly1305_ietf_decrypt(
+      nonce, message, null, nonce, this.sodiumInstance.from_hex(this.repoPublicKey), "text"
+    );
+  };
+
+  save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
     const uppercaseTag = tag.toUpperCase();
-    const encryptedValue = SimpleCache.encrypt.bind(this)(value);
+    const encryptedValue = this.encrypt(value);
     return await fs.writeFile(`/tmp/STAGED_FILES_${uppercaseTag}`, encryptedValue, 'utf-8')
       .then(() => console.log(`Cached value for ${tag}: ${value}`))
       .then(async () => await this.artifactClient.uploadArtifact(`STAGED_FILES_${uppercaseTag}`, [tag], '/tmp')
@@ -72,7 +92,7 @@ class SimpleCache {
       );
   };
 
-  static encrypt = function (this: SimpleCache, message: string): string {
+  encrypt = function (this: SimpleCache, message: string): string {
     const nonce = this.sodiumInstance.randombytes_buf(this.nonceBytes);
     const encryptedValue = this.sodiumInstance.crypto_aead_xchacha20poly1305_ietf_encrypt(
       message, null, nonce, nonce, this.sodiumInstance.from_hex(this.repoPublicKey)
@@ -82,16 +102,6 @@ class SimpleCache {
     return new TextDecoder().decode(encryptedMessageArray);
   };
 
-  static decrypt = function (this: SimpleCache, encrypted: string): string {
-    core.info('Decrypting secret value');
-    const encryptedMessageArray = new TextEncoder().encode(encrypted);
-    const nonce = encryptedMessageArray.slice(0, this.nonceBytes);
-    const message = encryptedMessageArray.slice(this.nonceBytes);
-    core.info('Successfully decrypted secret value')
-    return this.sodiumInstance.crypto_aead_xchacha20poly1305_ietf_decrypt(
-      nonce, message, null, nonce, this.sodiumInstance.from_hex(this.repoPublicKey), "text"
-    );
-  };
 }
 
 export default SimpleCache;
