@@ -6,7 +6,7 @@
 name: Check dist
 
 concurrency:
-  group: ${{ github.head_ref }}
+  group: ${{ github.head_ref }}-dist-check
   cancel-in-progress: true
 
 on:
