@@ -9,6 +9,7 @@
       "outDir": "dist",
       "lib": ["esnext"],
       "types": ["node"],
+      "moduleResolution":"node",
     },
     "include": ["src/**/*.ts", "index.ts"],
     "exclude": ["src/**/*.spec.ts"]
