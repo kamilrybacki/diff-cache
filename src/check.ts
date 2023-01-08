@@ -11,7 +11,7 @@ const check = async (include: string, exclude: string): Promise<string> => {
   console.log(`Checking staged files for ${include} ${exclude ? `and excluding ${exclude}` : ''}`);
   return await diff(include, exclude)
     .catch((error) => {
-      actionsConsole.fail(error.stderr.toString());
+      actionsConsole.fail(error.message);
       return error;
     })
     .then((files) => {
