@@ -27,7 +27,7 @@ jobs:
         restore-keys: npm-
     - run: npm ci --ignore-scripts
     - name: Manually pass Actions envs
-      run:
+      run: |
         echo "GITHUB_TOKEN=${{ secrets.SMART_DIFF_TOKEN }}" >> $GITHUB_ENV
         echo "ACTIONS_RUNTIME_URL=${ACTIONS_RUNTIME_URL}" >> $GITHUB_ENV
     - run: npm test
