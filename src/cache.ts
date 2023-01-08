@@ -27,9 +27,6 @@ class SimpleCache {
 
   static access = async function (token: string): Promise<SimpleCache> {
     if (!SimpleCache.__instance) {
-      Object.entries(process.env).forEach(([key, value]) => {
-        core.info(`Env: ${key}=${value}`);
-      });
       await SimpleCache.initialize(token)
         .then((instance: SimpleCache) => SimpleCache.__instance = instance);
     }
