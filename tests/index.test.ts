@@ -21,13 +21,13 @@ describe('SimpleCache encryption mechanisms', () => {
       owner: context.repo.owner,
       repo: context.repo.repo,
     })
-      .then(({data}) => {
-        expect(testCache?.repoPublicKey).not.toBe(data.key);
-        expect(testCache?.repoPublicKeyId).not.toBe(data.key_id);
-      })
       .catch((error) => {
         throw new Error(`Unable to retrieve repo public key: ${error}`);
-      });
+      })
+      .then(({data}) => {
+        expect(testCache?.repoPublicKey).toBe(data.key);
+        expect(testCache?.repoPublicKeyId).toBe(data.key_id);
+      })
   });
   test('Test message encryption', () => {
     core.info('Encrypting and Decrypting test message');
