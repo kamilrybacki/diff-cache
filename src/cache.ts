@@ -5,7 +5,7 @@ import {
   ArtifactClient
 } from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
-import SimpleCrypto from "simple-crypto-js"
+import { SimpleCrypto } from "simple-crypto-js"
 
 import { RestEndpointMethods } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 
@@ -34,7 +34,6 @@ class SimpleCache {
   }
 
   static initialize = async (token: string): Promise<SimpleCache> => {
-    core.info(SimpleCrypto.toString())
     const authenticatedAPI = getOctokit(token).rest
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.actions.getRepoPublicKey({
