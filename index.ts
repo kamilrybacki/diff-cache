@@ -12,7 +12,7 @@ async function run() {
     if (exclude) core.info(`Using ignore: ${exclude}`);
 
     const token = core.getInput('token');
-    await SimpleCache.access(token).then(async (cache: SimpleCache) => {
+    await SimpleCache.access(token).then(async () => {
       await check(include, exclude)
         .then(async (stagedFiles: string) => {
           stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');
