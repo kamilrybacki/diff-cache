@@ -2,7 +2,7 @@ import * as actionsConsole from './actionsConsole.js';
 import { execSync } from 'child_process';
 
 const diff = async (include: string, exclude: string): Promise<string> => {
-  const diffCommand = `git show --name-only --format=oneline`;
+  const diffCommand = `git fetch > /dev/null 2>&1 & git diff --name-only`;
   const findFilesCommand = `${diffCommand} | grep -E "${include}" | grep -vE "${exclude}"`;
   return new Promise<string>(() => execSync(findFilesCommand, { encoding: 'utf8' }));
 };
