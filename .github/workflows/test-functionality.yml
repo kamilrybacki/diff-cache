@@ -29,32 +29,32 @@ jobs:
     - uses: actions/github-script@v6
       with:
         script: |
-          const { data: { id: check_run_id } } = await github.checks.create({
-            ...context.repo,
-            name: 'Jest tests',
-            head_sha: context.sha,
-            status: 'in_progress',
-            started_at: new Date().toISOString()
+          import { runCLI } from '@jest-cli';
+          const testsResult = await runCLI(
+            {
+              preset: 'ts-jest',
+              testEnvironment: 'node',
+              transform: {
+                '^.+\\.ts?$': 'ts-jest',
+                '^.+\\.js?$': 'babel-jest',
+              },
+              collectCoverageFrom: [
+                "tests/**/*.{js,ts}",
+              ],
+              transformIgnorePatterns: [
+                "node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"
+              ],
+            },
+            [process.cwd()]
+          )
+          .catch((e) => {
+            console.error(e);
+            return { results: { success: false } };
           })
-          try {
-            await exec.exec('npm', ['run', 'test'])
-            await github.checks.update({
-              ...context.repo,
-              check_run_id,
-              status: 'completed',
-              conclusion: 'success',
-              completed_at: new Date().toISOString()
-            })
-          } catch (error) {
-            await github.checks.update({
-              ...context.repo,
-              check_run_id,
-              status: 'completed',
-              conclusion: 'failure',
-              completed_at: new Date().toISOString()
-            })
-            throw error
-          }
+          then(result => {
+            console.log(result);
+            return result;
+          });
 
   gray-box-tests:
     runs-on: ubuntu-latest
