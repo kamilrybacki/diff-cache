@@ -17,12 +17,12 @@ class SimpleCache {
   encryptor: SimpleCrypto;
   private static __instance: SimpleCache | undefined = undefined;
 
-  constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string, encryptor: SimpleCrypto) {
+  constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
     this.artifactClient = createArtifactClient();
-    this.encryptor = encryptor;
+    this.encryptor = new SimpleCrypto(repoPublicKey);
   }
 
   static access = async function (token: string): Promise<SimpleCache> {
@@ -34,6 +34,7 @@ class SimpleCache {
   }
 
   static initialize = async (token: string): Promise<SimpleCache> => {
+    core.info(SimpleCrypto)
     const authenticatedAPI = getOctokit(token).rest
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.actions.getRepoPublicKey({
@@ -44,8 +45,7 @@ class SimpleCache {
         core.info(`Successfully retrieved repo public key`);
         core.info(`Repo public key: ${data.key}`);
         core.info(`Repo public key id: ${data.key_id}`);
-        const encryptor = new SimpleCrypto(data.key);
-        return new SimpleCache(authenticatedAPI, data.key, data.key_id, encryptor);
+        return new SimpleCache(authenticatedAPI, data.key, data.key_id);
       })
       .catch((error) => {
         throw new Error(`Unable to initialize SimpleCache: ${error}`);
@@ -53,7 +53,7 @@ class SimpleCache {
   };
 
   load = async function (this: SimpleCache, tag: string): Promise<string> {
-    return await this.artifactClient.downloadArtifact(`STAGED_FILES_${tag.toUpperCase()}`, '/tmp')
+    return await this.artifactClient.downloadArtifact(tag, '/tmp')
       .then(async ({downloadPath}: {downloadPath: string}) => {
         console.log(`Downloaded artifact to ${downloadPath}`);
         return await fs.readFile(downloadPath, 'utf-8')
@@ -66,11 +66,10 @@ class SimpleCache {
   };
 
   save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
-    const uppercaseTag = tag.toUpperCase();
     const encryptedValue = this.encrypt(value);
-    return await fs.writeFile(`/tmp/STAGED_FILES_${uppercaseTag}`, encryptedValue, 'utf-8')
+    return await fs.writeFile(`/tmp/${tag}`, encryptedValue, 'utf-8')
       .then(() => console.log(`Cached value for ${tag}: ${value}`))
-      .then(async () => await this.artifactClient.uploadArtifact(`STAGED_FILES_${uppercaseTag}`, [tag], '/tmp')
+      .then(async () => await this.artifactClient.uploadArtifact(tag, [tag], '/tmp')
         .then(() => console.log(`Uploaded artifact for ${tag}`)).then(() => true))
         .catch((error) => {
           console.log(`Unable to cache ${tag}: ${error}`);

@@ -13,6 +13,7 @@ async function run() {
 
     const token = core.getInput('token');
     await SimpleCache.access(token).then(async (cache: SimpleCache) => {
+      core.info(`Public repo key: ${cache.repoPublicKey}`);
       await check(include, exclude)
         .then(async (stagedFiles: string) => {
           stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');
