@@ -3,8 +3,7 @@ import { context } from '@actions/github';
 import { beforeAll, describe, expect, test } from '@jest/globals';
 import SimpleCache from '../src/cache';
 
-describe('SimpleCache encryption mechanisms', () => {
-  const testMessage = 'This is a test message';
+describe('SimpleCache initialization', () => {
   const accessToken = process.env.GITHUB_TOKEN as string;
   let testCache: SimpleCache | undefined = undefined;
 
@@ -29,10 +28,4 @@ describe('SimpleCache encryption mechanisms', () => {
         expect(testCache?.repoPublicKeyId).toBe(data.key_id);
       })
   });
-  test('Test message encryption', () => {
-    core.info('Encrypting and Decrypting test message');
-        const encryptedMessage: string = testCache?.encrypt(testMessage) as string;
-        const decryptedMessage: string = testCache?.decrypt(encryptedMessage) as string;
-        expect(decryptedMessage).toBe(testMessage);
-    });
 });

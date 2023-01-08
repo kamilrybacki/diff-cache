@@ -2,12 +2,13 @@ import * as core from '@actions/core';
 import { beforeAll, describe, expect, test } from '@jest/globals';
 import SimpleCache from '../src/cache';
 
-describe('SimpleCache encryption mechanisms', () => {
+describe('SimpleCache caching mechanisms', () => {
   const accessToken = process.env.GITHUB_TOKEN as string;
   const testInfo = {
     'tag': 'TESTINFO',
     'value': 'This is a test value'
   };
+  const testMessage = 'This is a test message';
   let testCache: SimpleCache | undefined = undefined;
 
   beforeAll(async () => {
@@ -15,6 +16,13 @@ describe('SimpleCache encryption mechanisms', () => {
       .then(async (cache: SimpleCache) => {
         testCache = cache;
       });
+  });
+
+  test('Test message encryption', () => {
+    core.info('Encrypting and Decrypting test message');
+        const encryptedMessage: string = testCache?.encrypt(testMessage) as string;
+        const decryptedMessage: string = testCache?.decrypt(encryptedMessage) as string;
+        expect(decryptedMessage).toBe(testMessage);
   });
 
   test('Check saving information via GitHub artifacts', async () => {
@@ -37,5 +45,5 @@ describe('SimpleCache encryption mechanisms', () => {
       .catch((error) => {
         throw new Error(`Unable to load test value: ${error}`);
       });
-  }
+  });
 });
