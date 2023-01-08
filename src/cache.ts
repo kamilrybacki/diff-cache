@@ -55,7 +55,7 @@ class SimpleCache {
   load = async function (this: SimpleCache, tag: string): Promise<string> {
     return await this.artifactClient.downloadArtifact(tag, '/tmp')
       .then(async ({downloadPath}: {downloadPath: string}) => {
-        console.log(`Downloaded artifact to ${downloadPath}`);
+        core.info(`Downloaded artifact to ${downloadPath}`);
         return await fs.readFile(downloadPath, 'utf-8')
           .then((encryptedValue: string) => this.decrypt(encryptedValue))
       })
@@ -68,11 +68,11 @@ class SimpleCache {
   save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
     const encryptedValue = this.encrypt(value);
     return await fs.writeFile(`/tmp/${tag}`, encryptedValue, 'utf-8')
-      .then(() => console.log(`Cached value for ${tag}: ${value}`))
+      .then(() => core.info(`Cached value for ${tag}: ${value}`))
       .then(async () => await this.artifactClient.uploadArtifact(tag, [tag], '/tmp')
-        .then(() => console.log(`Uploaded artifact for ${tag}`)).then(() => true))
+        .then(() => core.info(`Uploaded artifact for ${tag}`)).then(() => true))
         .catch((error) => {
-          console.log(`Unable to cache ${tag}: ${error}`);
+          core.error(`Unable to cache ${tag}: ${error}`);
           return false;
         }
       );

@@ -1,4 +1,4 @@
-import * as core from '@actions/core';
+import * as actionsConsole from '../src/actionsConsole';
 import { context } from '@actions/github';
 import { beforeAll, describe, expect, test } from '@jest/globals';
 import SimpleCache from '../src/cache';
@@ -15,17 +15,15 @@ describe('SimpleCache initialization', () => {
   });
 
   test('Check if repo key info is correctly set', async () => {
-    core.info('Checking if repo key is info correct');
+    actionsConsole.info('Checking if repo key is info correct');
     await testCache?.authenticatedAPI.actions.getRepoPublicKey({
       owner: context.repo.owner,
       repo: context.repo.repo,
     })
-      .catch((error) => {
-        throw new Error(`Unable to retrieve repo public key: ${error}`);
-      })
-      .then(({data}) => {
-        expect(testCache?.repoPublicKey).toBe(data.key);
-        expect(testCache?.repoPublicKeyId).toBe(data.key_id);
+      .catch((error) => actionsConsole.fail(`Unable to retrieve repo public key: ${error}`))
+      .then((response) => {
+        expect(testCache?.repoPublicKey).toBe(response?.data.key);
+        expect(testCache?.repoPublicKeyId).toBe(response?.data.key_id);
       })
   });
 });

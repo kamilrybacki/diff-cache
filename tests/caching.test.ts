@@ -1,4 +1,4 @@
-import * as core from '@actions/core';
+import * as actionsConsole from '../src/actionsConsole';
 import { beforeAll, describe, expect, test } from '@jest/globals';
 import SimpleCache from '../src/cache';
 
@@ -19,31 +19,27 @@ describe('SimpleCache caching mechanisms', () => {
   });
 
   test('Test message encryption', () => {
-    core.info('Encrypting and Decrypting test message');
-        const encryptedMessage: string = testCache?.encrypt(testMessage) as string;
-        const decryptedMessage: string = testCache?.decrypt(encryptedMessage) as string;
-        expect(decryptedMessage).toBe(testMessage);
+    actionsConsole.info('Encrypting and Decrypting test message');
+    const encryptedMessage: string = testCache?.encrypt(testMessage) as string;
+    const decryptedMessage: string = testCache?.decrypt(encryptedMessage) as string;
+    expect(decryptedMessage).toBe(testMessage);
   });
 
   test('Check saving information via GitHub artifacts', async () => {
-    core.info(`Saving value for test tag`);
+    actionsConsole.info(`Saving value for test tag`);
     await testCache?.save(testInfo.tag, testInfo.value)
       .then((success: boolean) => {
         expect(success).toBe(true);
       })
-      .catch((error) => {
-        throw new Error(`Unable to save test value: ${error}`);
-      });
+      .catch((error) => actionsConsole.fail(`Unable to save test value: ${error}`));
   });
 
   test('Check loading information via GitHub artifacts', async () => {
-    core.info(`Loading value for test tag`);
+    actionsConsole.info(`Loading value for test tag`);
     await testCache?.load(testInfo.tag)
       .then((value: string) => {
         expect(value).toBe(testInfo.value);
       })
-      .catch((error) => {
-        throw new Error(`Unable to load test value: ${error}`);
-      });
+      .catch((error) => actionsConsole.fail(`Unable to load test value: ${error}`));
   });
 });
