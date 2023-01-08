@@ -7,22 +7,32 @@ import {
 import { getOctokit, context } from '@actions/github';
 import { SimpleCrypto } from "simple-crypto-js"
 
-import { RestEndpointMethods } from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
+import { GitHub } from '@actions/github/lib/utils';
 
 class SimpleCache {
   repoPublicKey: string;
   repoPublicKeyId: string;
   artifactClient: ArtifactClient;
-  authenticatedAPI: RestEndpointMethods;
+  authenticatedAPI: InstanceType<typeof GitHub>;
   encryptor: SimpleCrypto;
+  source: string;
+  target: string;
   private static __instance: SimpleCache | undefined = undefined;
 
-  constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string) {
+  constructor(
+    authenticatedAPI: InstanceType<typeof GitHub>,
+    repoPublicKey: string,
+    repoPublicKeyId: string,
+    source: string,
+    target: string
+  ) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
     this.artifactClient = createArtifactClient();
     this.encryptor = new SimpleCrypto(repoPublicKey);
+    this.source = source;
+    this.target = target;
   }
 
   static access = async function (token: string): Promise<SimpleCache> {
@@ -34,9 +44,9 @@ class SimpleCache {
   }
 
   static initialize = async (token: string): Promise<SimpleCache> => {
-    const authenticatedAPI = getOctokit(token).rest
+    const authenticatedAPI = getOctokit(token)
     core.info('Successfully authenticated with GitHub API');
-    return await authenticatedAPI.actions.getRepoPublicKey({
+    return await authenticatedAPI.rest.actions.getRepoPublicKey({
       owner: context.repo.owner,
       repo: context.repo.repo,
     })
@@ -45,11 +55,33 @@ class SimpleCache {
         core.info(`Successfully retrieved repo public key`);
         core.info(`Repo public key: ${data.key}`);
         core.info(`Repo public key id: ${data.key_id}`);
-        return new SimpleCache(authenticatedAPI, data.key, data.key_id);
+        const {source, target} = this.determineDiffStates();
+        return new SimpleCache(authenticatedAPI, data.key, data.key_id, source, target);
       })
       .catch((error) => {
         throw new Error(`Unable to initialize SimpleCache: ${error}`);
       })
+  };
+
+  static determineDiffStates = (): { source: string, target: string } => {
+    if (context.eventName === 'pull_request'){
+      return {
+        source: context.payload.pull_request?.base.sha,
+        target: context.payload.pull_request?.head.sha
+      };
+    } else if (context.eventName === 'push') {
+      return {
+        source: context.payload.before,
+        target: context.payload.after
+      };
+    } else {
+      throw new Error(`${context.eventName} event type is not supported by SimpleCache. Check the documentation for supported events.`);
+    }
+  };
+
+  diff = async function (this: SimpleCache, include: string, exclude: string): Promise<string> {
+    console.log(`Checking staged files for ${include} ${exclude ? `and excluding ${exclude}` : ''}`);
+    return '';
   };
 
   load = async function (this: SimpleCache, tag: string): Promise<string> {

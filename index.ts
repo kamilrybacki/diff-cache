@@ -1,6 +1,5 @@
 import * as actionsConsole from './src/actionsConsole.js';
 import * as core from '@actions/core';
-import check from './src/check.js';
 import update from './src/update.js';
 import SimpleCache from './src/cache.js';
 
@@ -14,8 +13,8 @@ async function run() {
   const token = core.getInput('token');
   await SimpleCache
     .access(token)
-    .then(async () => {
-      await check(include, exclude)
+    .then(async (cache: SimpleCache) => {
+      await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
           stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');
       })
