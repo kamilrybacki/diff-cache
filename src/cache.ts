@@ -18,6 +18,9 @@ class SimpleCache {
   private static __instance: SimpleCache | undefined = undefined;
 
   constructor(authenticatedAPI: RestEndpointMethods, repoPublicKey: string, repoPublicKeyId: string) {
+    Object.entries(process.env).forEach(([key, value]) => {
+      core.info(`${key}: ${value}`)
+    });
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;

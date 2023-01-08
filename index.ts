@@ -11,8 +11,6 @@ async function run() {
   const exclude = core.getInput('exclude');
   if (exclude) core.info(`Using ignore: ${exclude}`);
 
-  actionsConsole.info(process.env)
-
   const token = core.getInput('token');
   await SimpleCache
     .access(token)
