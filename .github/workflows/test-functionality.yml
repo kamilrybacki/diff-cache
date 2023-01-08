@@ -1,17 +1,15 @@
-name: "tests"
+name: "Functionality tests"
 
 on:
-  workflow_run:
-    workflows: ["Code Analysis"]
-    types:
-      - completed
+  push:
+  pull_request:
 
 concurrency:
   group: ${{ github.head_ref }}-tests
   cancel-in-progress: true
 
 jobs:
-  unit-tests:
+  jest:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.SMART_DIFF_TOKEN }}
@@ -32,9 +30,9 @@ jobs:
     - run: npm ci --ignore-scripts
     - run: npm test
 
-  live-tests:
+  gray-box:
     runs-on: ubuntu-latest
-    needs: unit-tests
+    needs: jest
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js 16.x
