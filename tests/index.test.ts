@@ -5,8 +5,9 @@ import SimpleCache from '../src/cache';
 
 describe('SimpleCache encryption mechanisms', () => {
   const testMessage = 'This is a test message';
+  const accessToken = process.env.GITHUB_TOKEN as string;
 
-  SimpleCache.access()
+  SimpleCache.access(accessToken)
     .then((testCache: SimpleCache) => {
       test('Check if repo key info is correctly set', async () => {
         core.info('Checking if repo key is info correct');
