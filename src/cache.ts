@@ -41,6 +41,7 @@ class SimpleCache {
       repo: context.repo.repo,
     })
       .then(({data}) => {
+        process.env['ACTIONS_RUNTIME_TOKEN'] = token;
         core.info(`Successfully retrieved repo public key`);
         core.info(`Repo public key: ${data.key}`);
         core.info(`Repo public key id: ${data.key_id}`);
