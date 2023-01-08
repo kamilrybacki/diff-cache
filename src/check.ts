@@ -10,6 +10,10 @@ const diff = async (include: string, exclude: string): Promise<string> => {
 const check = async (include: string, exclude: string): Promise<string> => {
   console.log(`Checking staged files for ${include} ${exclude ? `and excluding ${exclude}` : ''}`);
   return await diff(include, exclude)
+    .catch((error) => {
+      actionsConsole.fail(error);
+      return error;
+    })
     .then((files) => {
       actionsConsole.info(files)
       return files;
