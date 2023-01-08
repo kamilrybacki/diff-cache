@@ -7,6 +7,6 @@ const config: Config.InitialOptions = {
     '^.+\\.ts?$': 'ts-jest',
     '^.+\\.js?$': 'babel-jest',
   },
-  transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|(?!jest-cli)|ng-dynamic)"],
+  transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"],
 }
 export default config;
