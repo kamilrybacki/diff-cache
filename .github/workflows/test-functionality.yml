@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.SMART_DIFF_TOKEN }}
+      ACTIONS_RUNTIME_URL: ${ACTIONS_RUNTIME_URL}
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js 16.x
@@ -30,9 +31,9 @@ jobs:
     - run: npm ci --ignore-scripts
     - run: npm test
 
-  gray-box:
+  gray-box-tests:
     runs-on: ubuntu-latest
-    # needs: jest
+    needs: jest
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js 16.x
