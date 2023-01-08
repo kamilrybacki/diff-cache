@@ -1,4 +1,4 @@
-import * as actionsConsole from './src/actionsConsole';
+import * as actionsConsole from './src/actionsConsole.js';
 import * as core from '@actions/core';
 import check from './src/check.js';
 import update from './src/update.js';
