@@ -48,7 +48,7 @@ class SimpleCache {
         return new SimpleCache(authenticatedAPI, data.key, data.key_id, encryptor);
       })
       .catch((error) => {
-        throw new Error(`Unable to retrieve repo public key: ${error}`);
+        throw new Error(`Unable to initialize SimpleCache: ${error}`);
       })
   };
 
