@@ -1,7 +1,6 @@
 {
     "presets": ["@babel/typescript", "env"],
     "plugins": [
-        "@babel/plugin-transform-runtime",
-        "transform-class-properties"
+        "@babel/plugin-transform-runtime"
     ]
 }
