@@ -4,7 +4,15 @@ import { execSync } from 'child_process';
 const diff = async (include: string, exclude: string): Promise<string> => {
   const diffCommand = `git fetch > /dev/null 2>&1 & git diff --name-only`;
   const findFilesCommand = `${diffCommand} | grep -E "${include}" | grep -vE "${exclude}"`;
-  return new Promise<string>(() => execSync(findFilesCommand, { encoding: 'utf8' }));
+  return new Promise<string>(() => {
+    try {
+      execSync(findFilesCommand, { encoding: 'utf8' });
+    }
+    catch (error: { message: string }) {
+      actionsConsole.fail(error.message);
+      return error;
+    }
+  });
 };
 
 const check = async (include: string, exclude: string): Promise<string> => {
