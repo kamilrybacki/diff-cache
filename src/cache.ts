@@ -34,7 +34,7 @@ class SimpleCache {
   }
 
   static initialize = async (token: string): Promise<SimpleCache> => {
-    core.info(SimpleCrypto)
+    core.info(SimpleCrypto.toString())
     const authenticatedAPI = getOctokit(token).rest
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.actions.getRepoPublicKey({
