@@ -26,11 +26,8 @@ jobs:
         key: npm-${{ hashFiles('package-lock.json') }}
         restore-keys: npm-
     - run: npm ci --ignore-scripts
-    - name: Manually pass Actions envs
-      run: |
-        echo "GITHUB_TOKEN=${{ secrets.SMART_DIFF_TOKEN }}" >> $GITHUB_ENV
-        echo "ACTIONS_RUNTIME_URL=${ACTIONS_RUNTIME_URL}" >> $GITHUB_ENV
-    - run: npm test
+    - name: Run Jest
+      uses: stefanoeb/jest-action@1.0.3
 
   gray-box-tests:
     runs-on: ubuntu-latest
