@@ -5,7 +5,8 @@ const config: Config.InitialOptions = {
   testEnvironment: 'node',
   transform: {
     '^.+\\.ts?$': 'ts-jest',
+    '^.+\\.js?$': 'babel-jest',
   },
-  transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"],
+  transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|(?!jest-cli)|ng-dynamic)"],
 }
 export default config;
