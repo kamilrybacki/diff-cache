@@ -8,6 +8,5 @@ export const info = (message: string): void => {
 
 export const fail = (message: string): void => {
   core.setFailed(message);
-  console.error(message);
   throw new Error(message);
 }
