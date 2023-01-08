@@ -12,7 +12,7 @@ jobs:
   lint-markdown:
     runs-on: ubuntu-latest
     env:
-      MARKDOWN_FILES: $(find . -type f -name '*.md' -not -path './node_modules/*' -not -path './.github/*')
+      MARKDOWN_FILES: $(find . -name '*.md' -not -path './node_modules/*' -not -path './.github/*')
     steps:
     - uses: actions/checkout@v3
     - name: Lint changelog file
