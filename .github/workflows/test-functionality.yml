@@ -26,8 +26,35 @@ jobs:
         key: npm-${{ hashFiles('package-lock.json') }}
         restore-keys: npm-
     - run: npm ci --ignore-scripts
-    - name: Run Jest
-      run: npm run test
+    - uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: { id: check_run_id } } = await github.checks.create({
+            ...context.repo,
+            name: 'Jest tests',
+            head_sha: context.sha,
+            status: 'in_progress',
+            started_at: new Date().toISOString()
+          })
+          try {
+            await exec.exec('npm', ['run', 'test'])
+            await github.checks.update({
+              ...context.repo,
+              check_run_id,
+              status: 'completed',
+              conclusion: 'success',
+              completed_at: new Date().toISOString()
+            })
+          } catch (error) {
+            await github.checks.update({
+              ...context.repo,
+              check_run_id,
+              status: 'completed',
+              conclusion: 'failure',
+              completed_at: new Date().toISOString()
+            })
+            throw error
+          }
 
   gray-box-tests:
     runs-on: ubuntu-latest

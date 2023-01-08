@@ -7,6 +7,11 @@ const config: Config.InitialOptions = {
     '^.+\\.ts?$': 'ts-jest',
     '^.+\\.js?$': 'babel-jest',
   },
-  transformIgnorePatterns: ["node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"],
+  collectCoverageFrom: [
+    "tests/**/*.{js,ts}",
+  ],
+  transformIgnorePatterns: [
+    "node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)"
+  ],
 }
 export default config;
