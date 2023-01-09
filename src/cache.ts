@@ -1,9 +1,5 @@
 import * as core from '@actions/core';
 import fs from 'fs/promises';
-import {
-  create as createArtifactClient,
-  ArtifactClient,
-} from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
 import { SimpleCrypto } from "simple-crypto-js"
 import LZString from 'lz-string';
@@ -15,7 +11,6 @@ import { CommitComparisonResponse } from './types.js';
 class DiffCache {
   repoPublicKey: string;
   repoPublicKeyId: string;
-  artifactClient: ArtifactClient;
   authenticatedAPI: InstanceType<typeof GitHub>;
   source: string;
   target: string;
@@ -33,7 +28,6 @@ class DiffCache {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
-    this.artifactClient = createArtifactClient();
     this.source = source;
     this.target = target;
     const encryptor: SimpleCrypto = new SimpleCrypto(repoPublicKey);
@@ -119,38 +113,48 @@ class DiffCache {
   };
 
   save = async function (this: DiffCache, tag: string, value: string): Promise<void> {
-    const encryptedValue = this.encrypt(value);
-    const compressedValue = LZString.compress(encryptedValue);
-    await fs.writeFile(`${tag}`, compressedValue, 'utf-8')
-      .then(() => core.info(`Cached value for ${tag}: ${value}`))
-      .then(async () => await this.artifactClient.uploadArtifact(tag, [tag], `${process.env.GITHUB_WORKSPACE}/cache/${tag}`)
-        .then(() => {
-          core.setOutput('files', value)
-          core.info(`Uploaded artifact for ${tag}`)
-        })
-        .catch((error) => {
-          throw new Error(`Unable to cache ${tag}: ${error}`);
-        })
-      );
+    return await this.uploadCache(tag, value)
+      .then(({status}) => {
+        if (status != 201) {
+          throw new Error(`Unable to upload cache named ${tag}`)
+        }
+        core.info(`Uploaded artifact for ${tag}`)
+      })
+      .catch((error) => {
+        throw new Error(`Unable to cache ${tag}: ${error}`);
+      });
+  };
+
+  uploadCache = async function (this: DiffCache, tag: string, rawContent: string): Promise<{status: number}> {
+    core.setOutput('files', rawContent)
+    const compressedValue = LZString.compress(rawContent);
+    const encryptedValue = this.encrypt(compressedValue);
+    return await this.authenticatedAPI.request(
+      'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        secret_name: tag,
+        encrypted_value: encryptedValue,
+        key_id: this.repoPublicKeyId
+      }
+    )
+  }
+
+  downloadCache = async function (this: DiffCache, tag: string): Promise<string> {
+    core.info(`Downloading cache tagged ${tag}`);
+    return 'Test';
   };
 
   load = async function (this: DiffCache, tag: string): Promise<string> {
-    return await this.artifactClient.downloadArtifact(tag, `${process.env.GITHUB_WORKSPACE}/cache/`)
-      .then(async ({downloadPath}: {downloadPath: string}) => {
-        core.info(`Downloaded artifact to ${downloadPath}`);
-        return await fs.readFile(downloadPath, 'utf-8')
-          .catch(() => {
-            throw new Error(`Unable to open artifact under path: ${downloadPath}`);
-          })
-          .then((encryptedValue: string) => this.decrypt(encryptedValue) as string)
-          .then((value: string) => {
-            core.info(`Cached value for ${tag}: ${value}`);
-            return LZString.decompress(value) as string;
-          });
+    return await this.downloadCache(tag)
+      .then((compressedPayload: string) => LZString.decompress(compressedPayload) as string)
+      .catch((error) => {
+        throw new Error('Cannot perform decompression: ' + error);
       })
-      .catch(() => {
-        throw new Error(`Unable to download artifact: ${tag}`);
-      })
+      .then((decompressedPayload: string) => this.decrypt(decompressedPayload))
+      .catch((error) => {
+        throw new Error('Cannot perform decryption: ' + error);
+      });
   };
 }
 
