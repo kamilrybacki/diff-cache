@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import * as actionsConsole from './actionsConsole.js';
 import fs from 'fs/promises';
 import {
   create as createArtifactClient,
@@ -8,6 +9,7 @@ import { getOctokit, context } from '@actions/github';
 import { SimpleCrypto } from "simple-crypto-js"
 
 import { GitHub } from '@actions/github/lib/utils';
+import { CommitComparisonResponse } from './types.js';
 
 class SimpleCache {
   repoPublicKey: string;
@@ -80,8 +82,33 @@ class SimpleCache {
   };
 
   diff = async function (this: SimpleCache, include: string, exclude: string): Promise<string> {
-    console.log(`Checking staged files for ${include} ${exclude ? `and excluding ${exclude}` : ''}`);
-    return '';
+    console.log(`Checking changed files for ${include} ${exclude ? `and excluding ${exclude}` : ''}`);
+    await this.authenticatedAPI.rest.repos.compareCommitsWithBasehead({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      basehead: `${this.source}...${this.target}`
+    })
+      .catch((error) => {
+        throw new Error(`Unable to compare commits: ${error}`);
+      })
+      .then(async ({
+          data,
+          status: responseStatus,
+        }: {
+          data: CommitComparisonResponse,
+          status: number,
+        }) => {
+        if (responseStatus != 200) {
+          throw new Error('Request to compare commits failed');
+        }
+        const changedFiles = data.files
+          ?.filter((file: {filename: string}) => file.filename.match(new RegExp(include)))
+          .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(exclude)))
+          .map((file: {filename: string}) => file.filename)
+          .join(' ');
+        actionsConsole.info(`Changed files: ${changedFiles}`);
+        return changedFiles;
+      })
   };
 
   load = async function (this: SimpleCache, tag: string): Promise<string> {
