@@ -1,6 +1,4 @@
-import * as actionsConsole from './src/actionsConsole.js';
 import * as core from '@actions/core';
-import update from './src/update.js';
 import SimpleCache from './src/cache.js';
 
 async function run() {
@@ -16,9 +14,22 @@ async function run() {
     .then(async (cache: SimpleCache) => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
-          stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');
-      })
-    .catch((error: Error) => actionsConsole.fail(`Unable to check staged files: ${error}`));
+          await cache.load(`{include}_{exclude}`)
+            .then((cachedFiles: string) => {
+              const cachedFilesList = cachedFiles.split(' ');
+              const stagedFilesList = stagedFiles.split(' ');
+              if (cachedFilesList.length && stagedFilesList.length) {
+                const filesToCache = stagedFilesList.filter((file: string) => !cachedFilesList.includes(file));
+                if (filesToCache.length && filesToCache !== cachedFilesList) {
+                  core.info(`Files to cache: ${filesToCache}`);
+                  cache.save(`{include}_{exclude}`, filesToCache.join(' '));
+                }
+              }
+            });
+        })
+        .catch((error: Error) => {
+          throw new Error(`Unable to check staged files: ${error}`)
+        })
   });
 }
 
