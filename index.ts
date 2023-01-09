@@ -9,6 +9,7 @@ async function run() {
   if (exclude) core.info(`Using ignore: ${exclude}`);
 
   const token = core.getInput('token', {required: true});
+  process.env.GITHUB_TOKEN = token;
   await SimpleCache
     .access(token)
     .then(async (cache: SimpleCache) => {
