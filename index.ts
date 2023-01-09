@@ -9,6 +9,9 @@ async function run() {
   if (exclude) core.info(`Using ignore: ${exclude}`);
 
   const token = core.getInput('token', {required: true});
+  Object.entries(process.env).forEach(([key, value]) => {
+    core.info(`${key}: ${value}`)
+  });
   process.env.GITHUB_TOKEN = token;
   await DiffCache
     .access(token)
