@@ -14,7 +14,10 @@ async function run() {
     .then(async (cache: SimpleCache) => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
-          await cache.load(`{include}_{exclude}`)
+          await cache.load(`${include}_${exclude}`)
+            .catch((error: Error) => {
+              throw new Error(`Unable to check staged files: ${error}`)
+            })
             .then((cachedFiles: string) => {
               const cachedFilesList = cachedFiles.split(' ');
               const stagedFilesList = stagedFiles.split(' ');
@@ -22,14 +25,16 @@ async function run() {
                 const filesToCache = stagedFilesList.filter((file: string) => !cachedFilesList.includes(file));
                 if (filesToCache.length && filesToCache !== cachedFilesList) {
                   core.info(`Files to cache: ${filesToCache}`);
-                  cache.save(`{include}_{exclude}`, filesToCache.join(' '));
+                  cache.save(`${include}_${exclude}`, filesToCache.join(' '))
+                  .then((success: boolean) => {
+                    if (!success) {
+                      throw new Error(`Unable to cache files: ${filesToCache}`);
+                    }
+                  })
                 }
               }
             });
-        })
-        .catch((error: Error) => {
-          throw new Error(`Unable to check staged files: ${error}`)
-        })
+        });
   });
 }
 
