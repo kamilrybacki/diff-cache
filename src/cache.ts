@@ -115,16 +115,15 @@ class SimpleCache {
     }
   };
 
-  save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
+  save = async function (this: SimpleCache, tag: string, value: string): Promise<void> {
     const encryptedValue = this.encrypt(value);
     const compressedValue = LZString.compress(encryptedValue);
-    return await fs.writeFile(`${tag}`, compressedValue, 'utf-8')
+    await fs.writeFile(`${tag}`, compressedValue, 'utf-8')
       .then(() => core.info(`Cached value for ${tag}: ${value}`))
       .then(async () => await this.artifactClient.uploadArtifact(tag, [tag], '.')
         .then(() => core.info(`Uploaded artifact for ${tag}`)).then(() => true))
         .catch((error) => {
-          core.error(`Unable to cache ${tag}: ${error}`);
-          return false;
+          throw new Error(`Unable to cache ${tag}: ${error}`);
         }
       );
   };
@@ -134,14 +133,18 @@ class SimpleCache {
       .then(async ({downloadPath}: {downloadPath: string}) => {
         core.info(`Downloaded artifact to ${downloadPath}`);
         return await fs.readFile(downloadPath, 'utf-8')
-          .catch(() => '')
+          .catch(() => {
+            throw new Error(`Unable to open artifact under path: ${downloadPath}`);
+          })
           .then((encryptedValue: string) => this.decrypt(encryptedValue))
           .then((value: string) => {
             core.info(`Cached value for ${tag}: ${value}`);
             return LZString.decompress(value) as string;
           });
       })
-      .catch(() => '')
+      .catch(() => {
+        throw new Error(`Unable to download artifact: ${tag}`);
+      })
   };
 
   encrypt = function (this: SimpleCache, message: string): string {

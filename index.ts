@@ -18,19 +18,14 @@ async function run() {
             .catch((error: Error) => {
               throw new Error(`Unable to check staged files: ${error}`)
             })
-            .then((cachedFiles: string) => {
+            .then(async (cachedFiles: string) => {
               const cachedFilesList = cachedFiles.split(' ');
               const stagedFilesList = stagedFiles.split(' ');
               if (cachedFilesList.length && stagedFilesList.length) {
                 const filesToCache = stagedFilesList.filter((file: string) => !cachedFilesList.includes(file));
                 if (filesToCache.length && filesToCache !== cachedFilesList) {
                   core.info(`Files to cache: ${filesToCache}`);
-                  cache.save(`${include}_${exclude}`, filesToCache.join(' '))
-                  .then((success: boolean) => {
-                    if (!success) {
-                      throw new Error(`Unable to cache files: ${filesToCache}`);
-                    }
-                  })
+                  await cache.save(`${include}_${exclude}`, filesToCache.join(' '));
                 }
               }
             });
