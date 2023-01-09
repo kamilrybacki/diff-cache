@@ -14,24 +14,6 @@ inputs:
 outputs:
   files:
     description: 'List of changed files kept as GH Workflow output for convenience.'
-    value: ${{ steps.find-files.outputs.files }}
 runs:
-  using: 'composite'
-  steps:
-    - name: Download an artifact containing files cached from previous runs
-      uses: actions/download-artifact@v3
-      continue-on-error: true
-      with:
-        name: ${{ inputs.include }}-${{ inputs.exclude }}
-        path: ${{ inputs.include }}-${{ inputs.exclude }}
-    - name: Find files using SimpleCache
-      id: find-files
-      run:
-        node ./dist/index.js ${{ inputs.include }} ${{ inputs.exclude }} ${{ inputs.token }}
-      shell: bash
-    - name: Upload an artifact containing files cached from previous runs
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ inputs.include }}-${{ inputs.exclude }}
-        path: ${{ inputs.include }}-${{ inputs.exclude }}
-        retention-days: 30
+  using: 'node16'
+  main: 'dist/index.js'
