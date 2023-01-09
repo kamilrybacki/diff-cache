@@ -83,7 +83,7 @@ class SimpleCache {
 
   diff = async function (this: SimpleCache, include: string, exclude: string): Promise<string> {
     console.log(`Checking changed files for ${include} ${exclude ? `and excluding ${exclude}` : ''}`);
-    await this.authenticatedAPI.rest.repos.compareCommitsWithBasehead({
+    return await this.authenticatedAPI.rest.repos.compareCommitsWithBasehead({
       owner: context.repo.owner,
       repo: context.repo.repo,
       basehead: `${this.source}...${this.target}`
@@ -101,13 +101,16 @@ class SimpleCache {
         if (responseStatus != 200) {
           throw new Error('Request to compare commits failed');
         }
+        if (!data.files || data.files?.length === 0) {
+          throw new Error('No files changed');
+        }
         const changedFiles = data.files
           ?.filter((file: {filename: string}) => file.filename.match(new RegExp(include)))
           .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(exclude)))
           .map((file: {filename: string}) => file.filename)
           .join(' ');
         actionsConsole.info(`Changed files: ${changedFiles}`);
-        return changedFiles;
+        return changedFiles as string;
       })
   };
 
