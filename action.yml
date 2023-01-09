@@ -19,7 +19,8 @@ runs:
   using: 'composite'
   steps:
     - name: Download an artifact containing files cached from previous runs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
+      continue-on-error: true
       with:
         name: ${{ inputs.include }}-${{ inputs.exclude }}
         path: ${{ inputs.include }}-${{ inputs.exclude }}
@@ -29,7 +30,7 @@ runs:
         node ./dist/index.js ${{ inputs.include }} ${{ inputs.exclude }} ${{ inputs.token }}
       shell: bash
     - name: Upload an artifact containing files cached from previous runs
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.include }}-${{ inputs.exclude }}
         path: ${{ inputs.include }}-${{ inputs.exclude }}
