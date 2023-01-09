@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import SimpleCache from './src/cache.js';
+import DiffCache from './src/cache.js';
 
 async function run() {
   const include = core.getInput('include', {required: true});
@@ -10,9 +10,9 @@ async function run() {
 
   const token = core.getInput('token', {required: true});
   process.env.GITHUB_TOKEN = token;
-  await SimpleCache
+  await DiffCache
     .access(token)
-    .then(async (cache: SimpleCache) => {
+    .then(async (cache: DiffCache) => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
           await cache.load(`${include}_${exclude}`)
