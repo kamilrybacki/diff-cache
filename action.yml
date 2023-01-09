@@ -1,6 +1,6 @@
 name: 'SmartDiff'
 author: 'Kamil Rybacki'
-description: 'Finds files that have changed since last code SUCCESFUL workflow.'
+description: 'Finds files that have changed since last code SUCCESSFUL workflow.'
 inputs:
   include:
     description: 'Regex to use to match the files to include.'

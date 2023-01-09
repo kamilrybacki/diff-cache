@@ -2,13 +2,13 @@ import * as core from '@actions/core';
 import SimpleCache from './src/cache.js';
 
 async function run() {
-  const include = core.getInput('include');
+  const include = core.getInput('include', {required: true});
   core.info(`Using regex: ${include}`);
 
   const exclude = core.getInput('exclude');
   if (exclude) core.info(`Using ignore: ${exclude}`);
 
-  const token = core.getInput('token');
+  const token = core.getInput('token', {required: true});
   await SimpleCache
     .access(token)
     .then(async (cache: SimpleCache) => {

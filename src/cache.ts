@@ -3,7 +3,6 @@ import fs from 'fs/promises';
 import {
   create as createArtifactClient,
   ArtifactClient,
-  DownloadResponse
 } from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
 import { SimpleCrypto } from "simple-crypto-js"
@@ -24,7 +23,7 @@ class SimpleCache {
   decrypt: (input: string) => string
   private static __instance: SimpleCache | undefined = undefined;
 
-  constructor(
+  constructor (
     authenticatedAPI: InstanceType<typeof GitHub>,
     repoPublicKey: string,
     repoPublicKeyId: string,
@@ -124,7 +123,7 @@ class SimpleCache {
     const compressedValue = LZString.compress(encryptedValue);
     await fs.writeFile(`${tag}`, compressedValue, 'utf-8')
       .then(() => core.info(`Cached value for ${tag}: ${value}`))
-      .then(async () => await this.artifactClient.uploadArtifact(tag, [tag], '.')
+      .then(async () => await this.artifactClient.uploadArtifact(tag, [tag], `${process.env.GITHUB_WORKSPACE}/cache/${tag}`)
         .then(() => {
           core.setOutput('files', value)
           core.info(`Uploaded artifact for ${tag}`)
@@ -136,13 +135,7 @@ class SimpleCache {
   };
 
   load = async function (this: SimpleCache, tag: string): Promise<string> {
-    this.artifactClient.downloadAllArtifacts()
-    .then((response: DownloadResponse[]) => {
-      response.forEach((artifact: DownloadResponse) => {
-        core.info(`Downloaded artifact ${artifact.artifactName} to ${artifact.downloadPath}`);
-      })
-    })
-    return await this.artifactClient.downloadArtifact(tag)
+    return await this.artifactClient.downloadArtifact(tag, `${process.env.GITHUB_WORKSPACE}/cache/`)
       .then(async ({downloadPath}: {downloadPath: string}) => {
         core.info(`Downloaded artifact to ${downloadPath}`);
         return await fs.readFile(downloadPath, 'utf-8')
