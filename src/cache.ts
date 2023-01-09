@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import * as actionsConsole from './actionsConsole.js';
 import fs from 'fs/promises';
 import {
   create as createArtifactClient,
@@ -7,6 +6,7 @@ import {
 } from '@actions/artifact';
 import { getOctokit, context } from '@actions/github';
 import { SimpleCrypto } from "simple-crypto-js"
+import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
 import { CommitComparisonResponse } from './types.js';
@@ -82,7 +82,7 @@ class SimpleCache {
   };
 
   diff = async function (this: SimpleCache, include: string, exclude: string): Promise<string> {
-    console.log(`Checking changed files for ${include} ${exclude ? `and excluding ${exclude}` : ''}`);
+    console.log(`Checking changed files using pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`);
     return await this.authenticatedAPI.rest.repos.compareCommitsWithBasehead({
       owner: context.repo.owner,
       repo: context.repo.repo,
@@ -109,7 +109,7 @@ class SimpleCache {
           .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(exclude)))
           .map((file: {filename: string}) => file.filename)
           .join(' ');
-        actionsConsole.info(`Changed files: ${changedFiles}`);
+        core.info(`Changed files: ${changedFiles}`);
         return changedFiles as string;
       })
   };
@@ -119,8 +119,14 @@ class SimpleCache {
       .then(async ({downloadPath}: {downloadPath: string}) => {
         core.info(`Downloaded artifact to ${downloadPath}`);
         return await fs.readFile(downloadPath, 'utf-8')
+          .catch(() => '')
           .then((encryptedValue: string) => this.decrypt(encryptedValue))
+          .then((value: string) => {
+            core.info(`Cached value for ${tag}: ${value}`);
+            return LZString.decompress(value) as string;
+          });
       })
+      .catch(() => '')
   };
 
   decrypt = function (this: SimpleCache, encrypted: string): string {
@@ -129,7 +135,8 @@ class SimpleCache {
 
   save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
     const encryptedValue = this.encrypt(value);
-    return await fs.writeFile(`/tmp/${tag}`, encryptedValue, 'utf-8')
+    const compressedValue = LZString.compress(encryptedValue);
+    return await fs.writeFile(`/tmp/${tag}`, compressedValue, 'utf-8')
       .then(() => core.info(`Cached value for ${tag}: ${value}`))
       .then(async () => await this.artifactClient.uploadArtifact(tag, [tag], '/tmp')
         .then(() => core.info(`Uploaded artifact for ${tag}`)).then(() => true))
