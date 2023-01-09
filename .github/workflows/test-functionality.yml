@@ -31,5 +31,5 @@ jobs:
     - run: npm run build
     - uses: ./
       with:
-        include: '.*\.ts' # Regex for Python files to scan
+        include: '.*\.ts'
         token: ${{ secrets.SMART_DIFF_TOKEN }}
