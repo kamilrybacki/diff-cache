@@ -11,6 +11,7 @@ import LZString from 'lz-string';
 import { GitHub } from '@actions/github/lib/utils';
 import { CommitComparisonResponse } from './types.js';
 
+
 class SimpleCache {
   repoPublicKey: string;
   repoPublicKeyId: string;
@@ -45,7 +46,7 @@ class SimpleCache {
     return SimpleCache.__instance as SimpleCache;
   }
 
-  static initialize = async (token: string): Promise<SimpleCache> => {
+  private static initialize = async (token: string): Promise<SimpleCache> => {
     const authenticatedAPI = getOctokit(token)
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.rest.actions.getRepoPublicKey({
@@ -63,22 +64,6 @@ class SimpleCache {
       .catch((error) => {
         throw new Error(`Unable to initialize SimpleCache: ${error}`);
       })
-  };
-
-  static determineDiffStates = (): { source: string, target: string } => {
-    if (context.eventName === 'pull_request'){
-      return {
-        source: context.payload.pull_request?.base.sha,
-        target: context.payload.pull_request?.head.sha
-      };
-    } else if (context.eventName === 'push') {
-      return {
-        source: context.payload.before,
-        target: context.payload.after
-      };
-    } else {
-      throw new Error(`${context.eventName} event type is not supported by SimpleCache. Check the documentation for supported events.`);
-    }
   };
 
   diff = async function (this: SimpleCache, include: string, exclude: string): Promise<string> {
@@ -114,23 +99,20 @@ class SimpleCache {
       })
   };
 
-  load = async function (this: SimpleCache, tag: string): Promise<string> {
-    return await this.artifactClient.downloadArtifact(tag, '/tmp')
-      .then(async ({downloadPath}: {downloadPath: string}) => {
-        core.info(`Downloaded artifact to ${downloadPath}`);
-        return await fs.readFile(downloadPath, 'utf-8')
-          .catch(() => '')
-          .then((encryptedValue: string) => this.decrypt(encryptedValue))
-          .then((value: string) => {
-            core.info(`Cached value for ${tag}: ${value}`);
-            return LZString.decompress(value) as string;
-          });
-      })
-      .catch(() => '')
-  };
-
-  decrypt = function (this: SimpleCache, encrypted: string): string {
-    return this.encryptor.decrypt(encrypted) as string;
+  static determineDiffStates = (): { source: string, target: string } => {
+    if (context.eventName === 'pull_request'){
+      return {
+        source: context.payload.pull_request?.base.sha,
+        target: context.payload.pull_request?.head.sha
+      };
+    } else if (context.eventName === 'push') {
+      return {
+        source: context.payload.before,
+        target: context.payload.after
+      };
+    } else {
+      throw new Error(`${context.eventName} event type is not supported by SimpleCache. Check the documentation for supported events.`);
+    }
   };
 
   save = async function (this: SimpleCache, tag: string, value: string): Promise<boolean> {
@@ -147,10 +129,28 @@ class SimpleCache {
       );
   };
 
+  load = async function (this: SimpleCache, tag: string): Promise<string> {
+    return await this.artifactClient.downloadArtifact(tag, '/tmp')
+      .then(async ({downloadPath}: {downloadPath: string}) => {
+        core.info(`Downloaded artifact to ${downloadPath}`);
+        return await fs.readFile(downloadPath, 'utf-8')
+          .catch(() => '')
+          .then((encryptedValue: string) => this.decrypt(encryptedValue))
+          .then((value: string) => {
+            core.info(`Cached value for ${tag}: ${value}`);
+            return LZString.decompress(value) as string;
+          });
+      })
+      .catch(() => '')
+  };
+
   encrypt = function (this: SimpleCache, message: string): string {
     return this.encryptor.encrypt(message) as string;
   };
 
+  decrypt = function (this: SimpleCache, encrypted: string): string {
+    return this.encryptor.decrypt(encrypted) as string;
+  };
 }
 
 export default SimpleCache;
