@@ -150,18 +150,12 @@ class DiffCache {
   }
 
   load = function (this: DiffCache, tag: string): string {
-    try {
-      if (!this.__cache) {
-        this.__cache = this.lazyLoadCache();
-        core.info('Cache decompressed!')
-      }
-      return tag in this.__cache ? this.__cache[tag] : '';
-    } catch (error) {
-      throw new Error(`Unable to load cache for ${tag}`);
-    }
+    if (!this.__cache) this.lazyLoadCache();
+    const currentCache = this.__cache as {[key: string]: string};
+    return Object.hasOwn(currentCache, tag) ? currentCache[tag] : '';
   };
 
-  lazyLoadCache = function (this: DiffCache): {[key: string]: string} {
+  lazyLoadCache = function (this: DiffCache): void {
     const encryptedCache = core.getInput('cache');
     core.info('Loaded encrypted cache passed through action input')
     try {
@@ -169,7 +163,7 @@ class DiffCache {
       core.info('Cache decrypted!')
       const decompressedCache = LZString.decompress(decryptedCache) as string;
       core.info(decompressedCache)
-      return JSON.parse(decompressedCache);
+      this.__cache = JSON.parse(decompressedCache);
     } catch (error) {
       throw new Error(`Unable to decrypt and decompress cache!`);
     }
