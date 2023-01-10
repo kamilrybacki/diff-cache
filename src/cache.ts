@@ -157,8 +157,7 @@ class DiffCache {
 
   lazyLoadCache = function (this: DiffCache): void {
     const encryptedCache = core.getInput('cache').trim();
-    encryptedCache.split('').forEach((char) => core.info(char));
-    if (encryptedCache.length === 0) {
+    if (encryptedCache.length === 0 || encryptedCache === 'null') {
       core.info('Cache is completely empty due to first time use. Using an empty JSON.');
       this.__cache = {};
       return;
