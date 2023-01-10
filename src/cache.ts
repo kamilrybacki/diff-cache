@@ -143,7 +143,7 @@ class DiffCache {
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        secret_name: tag,
+        secret_name: 'SMART_DIFF_CACHE',
         encrypted_value: encryptedCache,
         key_id: this.repoPublicKeyId
       }
