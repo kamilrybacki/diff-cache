@@ -122,7 +122,8 @@ class DiffCache {
         core.info(`Uploaded artifact for ${tag}`)
       })
       .catch((error) => {
-        throw new Error(`Unable to cache ${tag}: ${error}`);
+        core.error(`${tag}: ${error}`);
+        throw new Error(`Unable to cache`);
       });
   };
 
