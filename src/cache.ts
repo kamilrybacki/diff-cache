@@ -165,7 +165,7 @@ class DiffCache {
       core.info(decompressedCache)
       this.__cache = JSON.parse(decompressedCache);
     } catch (error) {
-      core.error(error);
+      core.error(error as Error);
       throw new Error(`Unable to decrypt and decompress cache!`);
     }
   };
