@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import fs from 'fs/promises';
 import { getOctokit, context } from '@actions/github';
 import { SimpleCrypto } from "simple-crypto-js"
 import LZString from 'lz-string';
@@ -16,6 +15,7 @@ class DiffCache {
   target: string;
   encrypt: (input: string) => string;
   decrypt: (input: string) => string
+  private __cache: { [key: string]: string } | undefined = undefined;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
@@ -23,7 +23,7 @@ class DiffCache {
     repoPublicKey: string,
     repoPublicKeyId: string,
     source: string,
-    target: string
+    target: string,
   ) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
@@ -126,35 +126,45 @@ class DiffCache {
       });
   };
 
-  uploadCache = async function (this: DiffCache, tag: string, rawContent: string): Promise<{status: number}> {
-    core.setOutput('files', rawContent)
-    const compressedValue = LZString.compress(rawContent);
-    const encryptedValue = this.encrypt(compressedValue);
+  uploadCache = async function (this: DiffCache, tag: string, value: string): Promise<{status: number}> {
+    if (!this.__cache) {
+      throw new Error('Cannot upload cache before loading it into memory. Check if you are calling load() before save()');
+    }
+    core.setOutput('files', value)
+    this.__cache = Object.assign(this.__cache, {[tag]: value});
+    const cacheString = JSON.stringify(this.__cache);
+    const compressedCache = LZString.compress(cacheString);
+    const encryptedCache = this.encrypt(compressedCache);
     return await this.authenticatedAPI.request(
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
         secret_name: tag,
-        encrypted_value: encryptedValue,
+        encrypted_value: encryptedCache,
         key_id: this.repoPublicKeyId
       }
     )
   }
 
-  downloadCache = async function (this: DiffCache): Promise<string> {
-    return core.getInput('cache') as string;
+  load = function (this: DiffCache, tag: string): string {
+    try {
+      if (!this.__cache) {
+        this.__cache = this.lazyLoadCache();
+      }
+      return this.__cache[tag];
+    } catch (error) {
+      throw new Error(`Unable to load cache for ${tag}`);
+    }
   };
 
-  load = async function (this: DiffCache): Promise<string> {
-    return await this.downloadCache()
-      .then((compressedPayload: string) => LZString.decompress(compressedPayload) as string)
-      .catch((error) => {
-        throw new Error('Cannot perform decompression: ' + error);
-      })
-      .then((decompressedPayload: string) => this.decrypt(decompressedPayload))
-      .catch((error) => {
-        throw new Error('Cannot perform decryption: ' + error);
-      });
+  lazyLoadCache = function (this: DiffCache): {[key: string]: string} {
+    const encryptedCache = core.getInput('cache');
+    if (encryptedCache.length > 0) {
+      const decryptedCache = this.decrypt(encryptedCache);
+      const decompressedCache = LZString.decompress(decryptedCache) as string;
+      return JSON.parse(decompressedCache);
+    }
+    throw new Error(`Unable to load cache`);
   };
 }
 

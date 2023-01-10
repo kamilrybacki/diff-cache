@@ -32,4 +32,6 @@ jobs:
     - uses: ./
       with:
         include: '.*\.ts'
+        tag: 'test-ts'
         token: ${{ secrets.SMART_DIFF_TOKEN }}
+        cache: ${{ secrets.SMART_DIFF_CACHE }}

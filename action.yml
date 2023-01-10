@@ -5,15 +5,17 @@ inputs:
   include:
     description: 'Regex to use to match the files to include.'
     required: true
+  tag:
+    description: 'Tag used to identify the cache to be used. Same as the name of the secret containing the cache.'
+    required: true
+  cache:
+    description: 'Previously stored cache to use for the comparison. Set it to previously created SMART_DIFF_CACHE secret!'
+    required: true
   token:
-    description: 'Github token to use for the API calls.'
+    description: 'Github token to use for the API calls. Set it to previously created SMART_DIFF_TOKEN secret!'
     required: true
   exclude:
     description: 'Regex to use to match the files to ignore.'
-    required: false
-  cache:
-    description: 'Cache of the current files to use for the diff.'
-    default: ${{ secrets.${{inputs.include}}_${{inputs.exclude}} }}
     required: false
 outputs:
   files:
