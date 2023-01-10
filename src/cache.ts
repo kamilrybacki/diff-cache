@@ -168,6 +168,7 @@ class DiffCache {
       const decryptedCache = this.decrypt(encryptedCache);
       core.info('Cache decrypted!')
       const decompressedCache = LZString.decompress(decryptedCache) as string;
+      core.info(decompressedCache)
       return JSON.parse(decompressedCache);
     }
     throw new Error(`Unable to load cache`);
