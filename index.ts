@@ -14,7 +14,7 @@ async function run() {
     .then(async (cache: DiffCache) => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
-          await cache.load(`${include}_${exclude}`)
+          await cache.load()
             .catch((error: Error) => {
               throw new Error(`Unable to check staged files: ${error}`)
             })
