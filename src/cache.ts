@@ -155,7 +155,7 @@ class DiffCache {
         this.__cache = this.lazyLoadCache();
         core.info('Cache decompressed!')
       }
-      return this.__cache[tag];
+      return this.__cache[tag] || '';
     } catch (error) {
       throw new Error(`Unable to load cache for ${tag}`);
     }
