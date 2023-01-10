@@ -11,6 +11,10 @@ inputs:
   exclude:
     description: 'Regex to use to match the files to ignore.'
     required: false
+  cache:
+    description: 'Cache of the current files to use for the diff.'
+    default: ${{ secrets.${{inputs.include}}_${{inputs.exclude}} }}
+    required: false
 outputs:
   files:
     description: 'List of changed files kept as GH Workflow output for convenience.'

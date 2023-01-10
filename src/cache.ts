@@ -40,6 +40,8 @@ class DiffCache {
       await DiffCache.initialize(token)
         .then((instance: DiffCache) => DiffCache.__instance = instance);
     }
+    process.env.GITHUB_TOKEN = token;
+    process.env.ACTIONS_RUNTIME_TOKEN = token;
     return DiffCache.__instance as DiffCache;
   }
 
@@ -51,7 +53,6 @@ class DiffCache {
       repo: context.repo.repo,
     })
       .then(({data}) => {
-        process.env['ACTIONS_RUNTIME_TOKEN'] = token;
         core.info(`Successfully retrieved repo public key`);
         core.info(`Repo public key: ${data.key}`);
         core.info(`Repo public key id: ${data.key_id}`);
@@ -140,13 +141,12 @@ class DiffCache {
     )
   }
 
-  downloadCache = async function (this: DiffCache, tag: string): Promise<string> {
-    core.info(`Downloading cache tagged ${tag}`);
-    return 'Test';
+  downloadCache = async function (this: DiffCache): Promise<string> {
+    return core.getInput('cache') as string;
   };
 
-  load = async function (this: DiffCache, tag: string): Promise<string> {
-    return await this.downloadCache(tag)
+  load = async function (this: DiffCache): Promise<string> {
+    return await this.downloadCache()
       .then((compressedPayload: string) => LZString.decompress(compressedPayload) as string)
       .catch((error) => {
         throw new Error('Cannot perform decompression: ' + error);
