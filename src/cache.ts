@@ -157,6 +157,11 @@ class DiffCache {
 
   lazyLoadCache = function (this: DiffCache): void {
     const encryptedCache = core.getInput('cache');
+    if (encryptedCache.length === 0) {
+      core.info('Cache is completely empty due to first time use. Using an empty JSON.');
+      this.__cache = {};
+      return;
+    }
     core.info('Loaded encrypted cache passed through action input')
     try {
       const decryptedCache = this.decrypt(encryptedCache);
