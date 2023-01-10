@@ -164,14 +164,15 @@ class DiffCache {
   lazyLoadCache = function (this: DiffCache): {[key: string]: string} {
     const encryptedCache = core.getInput('cache');
     core.info('Loaded encrypted cache passed through action input')
-    if (encryptedCache.length > 0) {
+    try {
       const decryptedCache = this.decrypt(encryptedCache);
       core.info('Cache decrypted!')
       const decompressedCache = LZString.decompress(decryptedCache) as string;
       core.info(decompressedCache)
       return JSON.parse(decompressedCache);
+    } catch (error) {
+      throw new Error(`Unable to decrypt and decompress cache!`);
     }
-    throw new Error(`Unable to load cache`);
   };
 }
 
