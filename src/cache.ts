@@ -131,10 +131,13 @@ class DiffCache {
       throw new Error('Cannot upload cache before loading it into memory. Check if you are calling load() before save()');
     }
     core.setOutput('files', value)
+    core.info(`Saving cache for ${tag}...`)
     this.__cache = Object.assign(this.__cache, {[tag]: value});
     const cacheString = JSON.stringify(this.__cache);
     const compressedCache = LZString.compress(cacheString);
+    core.info('Cache compressed!')
     const encryptedCache = this.encrypt(compressedCache);
+    core.info('Cache encrypted!')
     return await this.authenticatedAPI.request(
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
@@ -150,6 +153,7 @@ class DiffCache {
     try {
       if (!this.__cache) {
         this.__cache = this.lazyLoadCache();
+        core.info('Cache decompressed!')
       }
       return this.__cache[tag];
     } catch (error) {
@@ -159,8 +163,10 @@ class DiffCache {
 
   lazyLoadCache = function (this: DiffCache): {[key: string]: string} {
     const encryptedCache = core.getInput('cache');
+    core.info('Loaded encrypted cache passed through action input')
     if (encryptedCache.length > 0) {
       const decryptedCache = this.decrypt(encryptedCache);
+      core.info('Cache decrypted!')
       const decompressedCache = LZString.decompress(decryptedCache) as string;
       return JSON.parse(decompressedCache);
     }
