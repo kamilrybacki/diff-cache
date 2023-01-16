@@ -28,10 +28,10 @@ class DiffCache {
     this.repoPublicKeyId = repoPublicKeyId;
     this.source = source;
     this.target = target;
+    core.info(Object.keys(SaltCrypto).toString())
     SaltCrypto.instantiate((SaltCryptoInstance: SaltCrypto.Nacl) => {
       this.__encryptor = SaltCryptoInstance;
       console.log('Successfully initialized encryptor');
-      core.info(Object.keys(this.__encryptor).toString())
     });
   }
 
