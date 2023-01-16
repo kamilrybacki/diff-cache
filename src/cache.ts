@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import SaltLibrary from 'js-nacl';
+import libsodiumWrapper, { ISodium } from 'libsodium-wrappers';
 import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
@@ -12,8 +12,8 @@ class DiffCache {
   authenticatedAPI: InstanceType<typeof GitHub>;
   source: string;
   target: string;
+  private encryptor: ( () => ISodium ) | undefined = undefined;
   private __cache: { [key: string]: string } | undefined = undefined;
-  private __encryptor: SaltLibrary.Nacl | undefined = undefined;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
@@ -22,16 +22,14 @@ class DiffCache {
     repoPublicKeyId: string,
     source: string,
     target: string,
+    encryptor: () => ISodium
   ) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
     this.source = source;
     this.target = target;
-    SaltLibrary.instantiate((SaltCryptoInstance: SaltLibrary.Nacl) => {
-      this.__encryptor = SaltCryptoInstance;
-      console.log('Successfully initialized encryptor');
-    });
+    this.encryptor = encryptor;
   }
 
   static access = async function (token: string): Promise<DiffCache> {
@@ -56,7 +54,8 @@ class DiffCache {
         core.info(`Repo public key: ${data.key}`);
         core.info(`Repo public key id: ${data.key_id}`);
         const {source, target} = this.determineDiffStates();
-        return new DiffCache(authenticatedAPI, data.key, data.key_id, source, target);
+        const sodium = () => await libsodiumWrapper.sodium.ready;
+        return new DiffCache(authenticatedAPI, data.key, data.key_id, source, target, sodium);
       })
       .catch((error: Error) => {
         throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
@@ -158,17 +157,15 @@ class DiffCache {
   };
 
   encrypt = function (this: DiffCache, value: string): string {
-    if (!this.__encryptor) {
-      throw new Error('Cannot encrypt before initializing encryptor');
+    const valueBytes = Uint8Array.from(Buffer.from(value));
+    if (!this.encryptor) {
+      throw new Error('Cannot encrypt cache before loading libsodium');
     }
-    const encodedValue = this.__encryptor.encode_utf8(value);
-    core.info('Value encoded!')
-    const encodedKey = this.__encryptor.encode_utf8(this.repoPublicKey);
-    const nonce = this.__encryptor.crypto_secretbox_random_nonce();
-    core.info('Nonce and key prepared!')
-    const encryptedMessage = this.__encryptor.crypto_secretbox(encodedValue, nonce, encodedKey);
-    core.info('Message encrypted!')
-    return this.__encryptor.decode_utf8(encryptedMessage);
+    return this.encryptor().then((sodium: ISodium) => {
+      const keyBytes = sodium.from_base64(this.repoPublicKey, sodium.base64_variants.ORIGINAL);
+      const encryptedBytes = sodium.crypto_box_seal(valueBytes, keyBytes);
+      return sodium.to_base64(encryptedBytes, sodium.base64_variants.ORIGINAL);
+    });
   };
 
   load = function (this: DiffCache, tag: string): string {
@@ -198,15 +195,15 @@ class DiffCache {
   };
 
   decrypt = function (this: DiffCache, value: string): string {
-    if (!this.__encryptor) {
-      throw new Error('Cannot decrypt before initializing encryptor');
+    if (!this.encryptor) {
+      throw new Error('Cannot encrypt cache before loading libsodium');
     }
-    const encodedValue = this.__encryptor.encode_utf8(value);
-    const encodedKey = this.__encryptor.encode_utf8(this.repoPublicKey);
-    const nonce = this.__encryptor.crypto_secretbox_random_nonce();
-    const encryptedMessageBox = this.__encryptor.crypto_secretbox(encodedValue, nonce, encodedKey);
-    const encryptedMessage = this.__encryptor.crypto_secretbox_open(encryptedMessageBox, nonce, encodedKey);
-    return this.__encryptor.decode_utf8(encryptedMessage);
+    return this.encryptor().then((sodium: ISodium) => {
+      const keyBytes = sodium.from_base64(this.repoPublicKey, sodium.base64_variants.ORIGINAL);
+      const encryptedBytes = sodium.from_base64(value, sodium.base64_variants.ORIGINAL);
+      const decryptedBytes = sodium.crypto_box_seal_open(encryptedBytes, keyBytes);
+      return Buffer.from(decryptedBytes).toString();
+    });
   }
 }
 
