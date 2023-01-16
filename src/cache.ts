@@ -13,7 +13,7 @@ class DiffCache {
   source: string;
   target: string;
   private __cache: { [key: string]: string } | undefined = undefined;
-  private __encryptor: SaltCrypto.Nacl | undefined = undefined;
+  private __encryptor: Nacl | undefined = undefined;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
