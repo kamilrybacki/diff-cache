@@ -121,7 +121,7 @@ class DiffCache {
         core.info(`Uploaded artifact for ${tag}`)
       })
       .catch((error: Error) => {
-        throw new Error(`Unable to cache: ${error.message}`);
+        throw new Error(error.message);
       });
   };
 
@@ -138,6 +138,7 @@ class DiffCache {
       const compressedCache = LZString.compress(cacheString);
       core.info('Cache compressed!')
       encryptedCache = this.encrypt(compressedCache);
+      core.info('Message encrypted!')
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Unable to encrypt cache: ${error.message}`);
@@ -162,8 +163,10 @@ class DiffCache {
       throw new Error('Cannot encrypt before initializing encryptor');
     }
     const encodedValue = this.__encryptor.encode_utf8(value);
+    core.info('Value encoded!')
     const encodedKey = this.__encryptor.encode_utf8(this.repoPublicKey);
     const nonce = this.__encryptor.crypto_secretbox_random_nonce();
+    core.info('Nonce and key prepared!')
     const encryptedMessage = this.__encryptor.crypto_secretbox(encodedValue, nonce, encodedKey);
     return this.__encryptor.decode_utf8(encryptedMessage);
   };
