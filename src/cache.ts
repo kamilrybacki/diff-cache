@@ -139,6 +139,9 @@ class DiffCache {
       core.info('Cache compressed!')
       encryptedCache = this.encrypt(compressedCache);
     } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Unable to encrypt cache: ${error.message}`);
+      }
       throw new Error(`Unable to encrypt cache: ${error}`);
     }
     core.info('Cache encrypted!')
