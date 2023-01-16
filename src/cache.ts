@@ -58,8 +58,8 @@ class DiffCache {
         const {source, target} = this.determineDiffStates();
         return new DiffCache(authenticatedAPI, data.key, data.key_id, source, target);
       })
-      .catch((error) => {
-        throw new Error(`Unable to initialize SimpleCache: ${error}`);
+      .catch((error: Error) => {
+        throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
       })
   };
 
@@ -120,8 +120,8 @@ class DiffCache {
         }
         core.info(`Uploaded artifact for ${tag}`)
       })
-      .catch((error) => {
-        throw new Error(`Unable to cache: ${error}`);
+      .catch((error: Error) => {
+        throw new Error(`Unable to cache: ${error.message}`);
       });
   };
 
