@@ -140,6 +140,7 @@ class DiffCache {
       encryptedCache = this.encrypt(compressedCache);
     } catch (error) {
       if (error instanceof Error) {
+        core.info(error.toString())
         throw new Error(`Unable to encrypt cache: ${error.message}`);
       }
       throw new Error(`Unable to encrypt cache: ${error}`);
