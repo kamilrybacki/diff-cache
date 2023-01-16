@@ -140,10 +140,10 @@ class DiffCache {
       encryptedCache = this.encrypt(compressedCache);
     } catch (error) {
       if (error instanceof Error) {
-        core.info(error.toString())
         throw new Error(`Unable to encrypt cache: ${error.message}`);
+      } else {
+        throw new Error(`Unable to encrypt cache: ${error}`);
       }
-      throw new Error(`Unable to encrypt cache: ${error}`);
     }
     core.info('Cache encrypted!')
     return await this.authenticatedAPI.request(
