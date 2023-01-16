@@ -5,6 +5,7 @@ import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
 import { CommitComparisonResponse } from './types.js';
+import { encode } from 'punycode';
 
 
 class DiffCache {
@@ -139,6 +140,7 @@ class DiffCache {
     core.info('Cache compressed!')
     const encryptedCache = this.encrypt(compressedCache);
     core.info('Cache encrypted!')
+    console.log(encryptedCache)
     return await this.authenticatedAPI.request(
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
