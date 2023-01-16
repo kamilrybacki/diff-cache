@@ -136,11 +136,11 @@ class DiffCache {
     core.info(`Saving cache for ${tag}...`)
     this.__cache = Object.assign(this.__cache, {[tag]: value});
     const cacheString = JSON.stringify(this.__cache);
+    console.log(cacheString)
     const compressedCache = LZString.compress(cacheString);
     core.info('Cache compressed!')
     const encryptedCache = this.encrypt(compressedCache);
     core.info('Cache encrypted!')
-    console.log(encryptedCache)
     return await this.authenticatedAPI.request(
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
