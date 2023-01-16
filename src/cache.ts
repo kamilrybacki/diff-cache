@@ -131,11 +131,16 @@ class DiffCache {
     }
     core.setOutput('files', value)
     core.info(`Saving cache for ${tag}...`)
-    this.__cache = Object.assign(this.__cache, {[tag]: value});
-    const cacheString = JSON.stringify(this.__cache);
-    const compressedCache = LZString.compress(cacheString);
-    core.info('Cache compressed!')
-    const encryptedCache = this.encrypt(compressedCache);
+    let encryptedCache: string;
+    try {
+      this.__cache = Object.assign(this.__cache, {[tag]: value});
+      const cacheString = JSON.stringify(this.__cache);
+      const compressedCache = LZString.compress(cacheString);
+      core.info('Cache compressed!')
+      encryptedCache = this.encrypt(compressedCache);
+    } catch (error) {
+      throw new Error(`Unable to encrypt cache: ${error}`);
+    }
     core.info('Cache encrypted!')
     return await this.authenticatedAPI.request(
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
