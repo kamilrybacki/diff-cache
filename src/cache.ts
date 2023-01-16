@@ -138,7 +138,6 @@ class DiffCache {
       const compressedCache = LZString.compress(cacheString);
       core.info('Cache compressed!')
       encryptedCache = this.encrypt(compressedCache);
-      core.info('Message encrypted!')
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Unable to encrypt cache: ${error.message}`);
@@ -168,6 +167,7 @@ class DiffCache {
     const nonce = this.__encryptor.crypto_secretbox_random_nonce();
     core.info('Nonce and key prepared!')
     const encryptedMessage = this.__encryptor.crypto_secretbox(encodedValue, nonce, encodedKey);
+    core.info('Message encrypted!')
     return this.__encryptor.decode_utf8(encryptedMessage);
   };
 
