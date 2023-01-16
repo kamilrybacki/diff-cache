@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import { SimpleCrypto } from "simple-crypto-js"
+import * as SaltCrypto from 'js-nacl';
 import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
@@ -12,9 +12,8 @@ class DiffCache {
   authenticatedAPI: InstanceType<typeof GitHub>;
   source: string;
   target: string;
-  encrypt: (input: string) => string;
-  decrypt: (input: string) => string
   private __cache: { [key: string]: string } | undefined = undefined;
+  private __encryptor: SaltCrypto.Nacl | undefined = undefined;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
@@ -29,9 +28,9 @@ class DiffCache {
     this.repoPublicKeyId = repoPublicKeyId;
     this.source = source;
     this.target = target;
-    const encryptor: SimpleCrypto = new SimpleCrypto(repoPublicKey);
-    this.encrypt = (input: string) => encryptor.encrypt(input) as string;
-    this.decrypt = (input: string) => encryptor.decrypt(input) as string;
+    SaltCrypto.instantiate((SaltCryptoInstance: SaltCrypto.Nacl) => {
+      this.__encryptor = SaltCryptoInstance;
+    });
   }
 
   static access = async function (token: string): Promise<DiffCache> {
@@ -137,15 +136,6 @@ class DiffCache {
     core.info('Cache compressed!')
     const encryptedCache = this.encrypt(compressedCache);
     core.info('Cache encrypted!')
-    console.log(
-      {
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        secret_name: 'SMART_DIFF_CACHE',
-        encrypted_value: encryptedCache,
-        key_id: this.repoPublicKeyId
-      }
-    )
     return await this.authenticatedAPI.request(
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
@@ -155,7 +145,18 @@ class DiffCache {
         key_id: this.repoPublicKeyId
       }
     )
-  }
+  };
+
+  encrypt = function (this: DiffCache, value: string): string {
+    if (!this.__encryptor) {
+      throw new Error('Cannot encrypt before initializing encryptor');
+    }
+    const encodedValue = this.__encryptor.encode_utf8(value);
+    const encodedKey = this.__encryptor.encode_utf8(this.repoPublicKey);
+    const nonce = this.__encryptor.crypto_secretbox_random_nonce();
+    const encryptedMessage = this.__encryptor.crypto_secretbox(encodedValue, nonce, encodedKey);
+    return this.__encryptor.decode_utf8(encryptedMessage);
+  };
 
   load = function (this: DiffCache, tag: string): string {
     if (!this.__cache) this.lazyLoadCache();
@@ -182,6 +183,18 @@ class DiffCache {
       throw new Error(`Unable to decrypt and decompress cache!`);
     }
   };
+
+  decrypt = function (this: DiffCache, value: string): string {
+    if (!this.__encryptor) {
+      throw new Error('Cannot decrypt before initializing encryptor');
+    }
+    const encodedValue = this.__encryptor.encode_utf8(value);
+    const encodedKey = this.__encryptor.encode_utf8(this.repoPublicKey);
+    const nonce = this.__encryptor.crypto_secretbox_random_nonce();
+    const encryptedMessageBox = this.__encryptor.crypto_secretbox(encodedValue, nonce, encodedKey);
+    const encryptedMessage = this.__encryptor.crypto_secretbox_open(encryptedMessageBox, nonce, encodedKey);
+    return this.__encryptor.decode_utf8(encryptedMessage);
+  }
 }
 
 export default DiffCache;
