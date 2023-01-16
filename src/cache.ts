@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import { instantiate as SaltInstantiate, Nacl } from 'js-nacl';
+import SaltLibrary from 'js-nacl';
 import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
@@ -13,7 +13,7 @@ class DiffCache {
   source: string;
   target: string;
   private __cache: { [key: string]: string } | undefined = undefined;
-  private __encryptor: Nacl | undefined = undefined;
+  private __encryptor: SaltLibrary.Nacl | undefined = undefined;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
@@ -28,7 +28,7 @@ class DiffCache {
     this.repoPublicKeyId = repoPublicKeyId;
     this.source = source;
     this.target = target;
-    SaltInstantiate((SaltCryptoInstance: Nacl) => {
+    SaltLibrary.instantiate((SaltCryptoInstance: SaltLibrary.Nacl) => {
       this.__encryptor = SaltCryptoInstance;
       console.log('Successfully initialized encryptor');
     });
