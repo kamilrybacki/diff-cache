@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import * as SaltCrypto from 'js-nacl';
+import { instantiate as SaltInstantiate, Nacl } from 'js-nacl';
 import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
@@ -28,8 +28,7 @@ class DiffCache {
     this.repoPublicKeyId = repoPublicKeyId;
     this.source = source;
     this.target = target;
-    core.info(Object.keys(SaltCrypto).toString())
-    SaltCrypto.instantiate((SaltCryptoInstance: SaltCrypto.Nacl) => {
+    SaltInstantiate((SaltCryptoInstance: Nacl) => {
       this.__encryptor = SaltCryptoInstance;
       console.log('Successfully initialized encryptor');
     });
