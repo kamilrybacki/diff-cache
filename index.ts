@@ -24,10 +24,7 @@ async function run() {
             const filesToCache = stagedFilesList.filter((file: string) => !cachedFilesList.includes(file));
             if (filesToCache.length && filesToCache !== cachedFilesList) {
               core.info(`Files to cache: ${filesToCache}`);
-              await cache.save(cacheTag, filesToCache.join(' '))
-                .catch((error) => {
-                  core.error(`Unable to save cache: ${error}`);
-                });
+              await cache.save(cacheTag, filesToCache.join(' '));
             }
           }
         });
