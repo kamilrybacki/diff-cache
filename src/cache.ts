@@ -131,7 +131,6 @@ class DiffCache {
     if (!this.__cache) {
       throw new Error('Cannot upload cache before loading it into memory. Check if you are calling load() before save()');
     }
-    core.info(tag)
     core.setOutput('files', value)
     core.info(`Saving cache for ${tag}...`)
     this.__cache = Object.assign(this.__cache, {[tag]: value});
