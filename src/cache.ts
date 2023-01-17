@@ -1,10 +1,10 @@
 import * as core from '@actions/core';
 import { getOctokit, context } from '@actions/github';
-import libsodiumWrapper, { ISodium } from 'libsodium-wrappers';
+import * as Sodium from 'libsodium-wrappers';
 import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
-import { CommitComparisonResponse } from './types.js';
+import { CommitComparisonResponsed } from './types.js';
 
 class DiffCache {
   repoPublicKey: string;
@@ -12,7 +12,7 @@ class DiffCache {
   authenticatedAPI: InstanceType<typeof GitHub>;
   source: string;
   target: string;
-  private encryptor: ( () => ISodium ) | undefined = undefined;
+  private encryptor: (() => Promise<typeof Sodium>) | undefined = undefined;
   private __cache: { [key: string]: string } | undefined = undefined;
   private static __instance: DiffCache | undefined = undefined;
 
@@ -22,7 +22,7 @@ class DiffCache {
     repoPublicKeyId: string,
     source: string,
     target: string,
-    encryptor: () => ISodium
+    encryptor: () => Promise<typeof Sodium>
   ) {
     this.authenticatedAPI = authenticatedAPI;
     this.repoPublicKey = repoPublicKey;
@@ -42,19 +42,22 @@ class DiffCache {
     return DiffCache.__instance as DiffCache;
   }
 
-  private static initialize = async (token: string): Promise<DiffCache> => {
+  private static initialize = async function (token: string): Promise<DiffCache> {
     const authenticatedAPI = getOctokit(token)
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.rest.actions.getRepoPublicKey({
       owner: context.repo.owner,
       repo: context.repo.repo,
     })
-      .then(({data}) => {
+      .then(async function ({data}) {
         core.info(`Successfully retrieved repo public key`);
         core.info(`Repo public key: ${data.key}`);
         core.info(`Repo public key id: ${data.key_id}`);
-        const {source, target} = this.determineDiffStates();
-        const sodium = () => await libsodiumWrapper.sodium.ready;
+        const {source, target} = DiffCache.determineDiffStates();
+        const sodium = async () => {
+          await Sodium.ready;
+          return Sodium;
+        }
         return new DiffCache(authenticatedAPI, data.key, data.key_id, source, target, sodium);
       })
       .catch((error: Error) => {
@@ -130,13 +133,23 @@ class DiffCache {
     }
     core.setOutput('files', value)
     core.info(`Saving cache for ${tag}...`)
-    let encryptedCache: string;
     try {
       this.__cache = Object.assign(this.__cache, {[tag]: value});
       const cacheString = JSON.stringify(this.__cache);
       const compressedCache = LZString.compress(cacheString);
       core.info('Cache compressed!')
-      encryptedCache = this.encrypt(compressedCache);
+      return this.encrypt(compressedCache).then(async (encryptedCache: string) => {
+        core.info('Cache encrypted!')
+        return await this.authenticatedAPI.request(
+          'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            secret_name: 'SMART_DIFF_CACHE',
+            encrypted_value: encryptedCache,
+            key_id: this.repoPublicKeyId
+          }
+        );
+      });
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Unable to encrypt cache: ${error.message}`);
@@ -144,27 +157,17 @@ class DiffCache {
         throw new Error(`Unable to encrypt cache: ${error}`);
       }
     }
-    core.info('Cache encrypted!')
-    return await this.authenticatedAPI.request(
-      'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        secret_name: 'SMART_DIFF_CACHE',
-        encrypted_value: encryptedCache,
-        key_id: this.repoPublicKeyId
-      }
-    )
   };
 
-  encrypt = function (this: DiffCache, value: string): string {
+  encrypt = async function (this: DiffCache, value: string): Promise<string> {
     const valueBytes = Uint8Array.from(Buffer.from(value));
     if (!this.encryptor) {
       throw new Error('Cannot encrypt cache before loading libsodium');
     }
-    return this.encryptor().then((sodium: ISodium) => {
-      const keyBytes = sodium.from_base64(this.repoPublicKey, sodium.base64_variants.ORIGINAL);
-      const encryptedBytes = sodium.crypto_box_seal(valueBytes, keyBytes);
-      return sodium.to_base64(encryptedBytes, sodium.base64_variants.ORIGINAL);
+    return await this.encryptor().then((SodiumInstance: typeof Sodium) => {
+      const keyBytes = SodiumInstance.from_base64(this.repoPublicKey, SodiumInstance.base64_variants.ORIGINAL);
+      const encryptedBytes = SodiumInstance.crypto_box_seal(valueBytes, keyBytes);
+      return SodiumInstance.to_base64(encryptedBytes, SodiumInstance.base64_variants.ORIGINAL);
     });
   };
 
@@ -174,18 +177,16 @@ class DiffCache {
     return Object.hasOwn(currentCache, tag) ? currentCache[tag] : '';
   };
 
-  lazyLoadCache = function (this: DiffCache): void {
-    const encryptedCache = core.getInput('cache');
-    if (encryptedCache === 'true') {
+  lazyLoadCache = async function (this: DiffCache): Promise<void> {
+    const storedCache = core.getInput('cache');
+    if (storedCache === 'true') {
       core.info('Cache is completely empty due to first time use. Using an empty JSON.');
       this.__cache = {};
       return;
     }
     core.info('Loaded encrypted cache passed through action input')
     try {
-      const decryptedCache = this.decrypt(encryptedCache);
-      core.info('Cache decrypted!')
-      const decompressedCache = LZString.decompress(decryptedCache) as string;
+      const decompressedCache = LZString.decompress(storedCache) as string;
       core.info(decompressedCache)
       this.__cache = JSON.parse(decompressedCache);
     } catch (error) {
@@ -193,18 +194,6 @@ class DiffCache {
       throw new Error(`Unable to decrypt and decompress cache!`);
     }
   };
-
-  decrypt = function (this: DiffCache, value: string): string {
-    if (!this.encryptor) {
-      throw new Error('Cannot encrypt cache before loading libsodium');
-    }
-    return this.encryptor().then((sodium: ISodium) => {
-      const keyBytes = sodium.from_base64(this.repoPublicKey, sodium.base64_variants.ORIGINAL);
-      const encryptedBytes = sodium.from_base64(value, sodium.base64_variants.ORIGINAL);
-      const decryptedBytes = sodium.crypto_box_seal_open(encryptedBytes, keyBytes);
-      return Buffer.from(decryptedBytes).toString();
-    });
-  }
 }
 
 export default DiffCache;
