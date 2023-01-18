@@ -4,7 +4,7 @@ import * as Sodium from 'libsodium-wrappers';
 import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
-import { CommitComparisonResponsed } from './types.js';
+import { CommitComparisonResponse } from './types.js';
 
 class DiffCache {
   repoPublicKey: string;
