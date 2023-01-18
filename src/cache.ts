@@ -63,6 +63,19 @@ class DiffCache {
       })
   };
 
+  validateFiles = (files: string[], include: string, exclude: string): void => {
+    const regex = new RegExp(include);
+    const ignore = new RegExp(exclude);
+    files.forEach((file: string) => {
+      if (!file.match(regex)) {
+        throw new Error(`File ${file} does not match include regex ${include}. Check the cache loading/saving logic.`);
+      }
+      if (exclude && file.match(ignore)) {
+        throw new Error(`File ${file} matches exclude regex ${exclude}. Check the cache loading/saving logic.`);
+      }
+    });
+  };
+
   diff = async function (this: DiffCache, include: string, exclude: string): Promise<string> {
     console.log(`Checking changed files using pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`);
     return await this.authenticatedAPI.rest.repos.compareCommitsWithBasehead({
