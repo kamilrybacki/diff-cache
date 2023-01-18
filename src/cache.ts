@@ -64,7 +64,7 @@ class DiffCache {
   };
 
   validateFiles = (files: string[], include: string, exclude: string): string[] => {
-    core.debug(`Validating files: ${files} against pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`)
+    core.info(`Validating files: ${files} against pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`)
     const regex = new RegExp(include);
     const ignore = new RegExp(exclude);
     return files.reduce((incorrect_files: string[], file: string) => {

@@ -23,18 +23,22 @@ const run = async () => {
           if (stagedFiles.length) {
             const allFilesList = `${cachedFiles} ${stagedFiles}`.split(' ');
             const filesToCache = [...new Set(allFilesList)];
-            const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);
-            if (incorrect_entires.length > 0) {
-              core.info(`Incorrect entries: ${incorrect_entires}. Removing from cache list.`)
-            }
-            const cleanCache = filesToCache
-                              .filter((file: string) => !incorrect_entires.includes(file))
-                              .join(' ');
-            if (cleanCache.length && cleanCache!== cachedFiles) {
-              core.info(`Files to cache: ${cleanCache}`);
-              await cache.save(cacheTag, cleanCache);
+            if(filesToCache.length) {
+              const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);
+              if (incorrect_entires.length > 0) {
+                core.info(`Incorrect entries: ${incorrect_entires}. Removing from cache list.`)
+              }
+              const cleanCache = filesToCache
+                                .filter((file: string) => !incorrect_entires.includes(file))
+                                .join(' ');
+              if (cleanCache.length && cleanCache!== cachedFiles) {
+                core.info(`Files to cache: ${cleanCache}`);
+                await cache.save(cacheTag, cleanCache);
+              } else {
+                core.info('No files to cache!');
+              }
             } else {
-              core.info('No new files to cache!');
+              core.info('No files to cache!');
             }
           }
         });
