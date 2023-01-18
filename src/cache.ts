@@ -184,22 +184,15 @@ class DiffCache {
   };
 
   lazyLoadCache = async function (this: DiffCache): Promise<void> {
-    const storedCache = core.getInput('cache');
     try {
+      const storedCache = core.getInput('cache');
+      core.info('Loaded encrypted cache passed through action input')
+      const decompressedCache = LZString.decompress(storedCache) as string;
       core.info('Checking if cache is a valid JSON.')
-      JSON.parse(storedCache);
+      this.__cache = JSON.parse(decompressedCache);
     } catch (error) {
       core.info('Cache is not a valid JSON due to first time use. Resetting it an empty one.');
       this.__cache = {};
-      return;
-    }
-    core.info('Loaded encrypted cache passed through action input')
-    try {
-      const decompressedCache = LZString.decompress(storedCache) as string;
-      this.__cache = JSON.parse(decompressedCache);
-    } catch (error) {
-      core.error(error as Error);
-      throw new Error(`Unable to decrypt and decompress cache!`);
     }
   };
 }
