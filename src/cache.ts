@@ -55,7 +55,9 @@ class DiffCache {
         core.info(`Repo public key id: ${data.key_id}`);
         const {source, target} = DiffCache.determineDiffStates();
         await Sodium.ready;
-        return new DiffCache(authenticatedAPI, data.key, data.key_id, source, target, Sodium);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        return new DiffCache(authenticatedAPI, data.key, data.key_id, source, target, Sodium.default);
       })
       .catch((error: Error) => {
         throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
