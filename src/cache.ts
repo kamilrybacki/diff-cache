@@ -158,14 +158,12 @@ class DiffCache {
   };
 
   encrypt = function (this: DiffCache, value: string): string {
-    const valueBytes = Uint8Array.from(Buffer.from(value));
     if (!this.encryptor) {
       throw new Error('Cannot encrypt cache before loading libsodium');
     }
-    core.info(Object.keys(this.encryptor).toString());
     const base64_variant = this.encryptor.base64_variants.ORIGINAL;
-    const keyBytes = this.encryptor.from_base64(this.repoPublicKey);
-    const encryptedBytes = this.encryptor.crypto_box_seal(valueBytes, keyBytes);
+    const key = this.encryptor.from_base64(this.repoPublicKey, base64_variant);
+    const encryptedBytes = this.encryptor.crypto_box_seal(value, key);
     return this.encryptor.to_base64(encryptedBytes, base64_variant);
   };
 
