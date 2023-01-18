@@ -184,7 +184,7 @@ class DiffCache {
     core.info('Loaded encrypted cache passed through action input')
     try {
       const decompressedCache = LZString.decompress(storedCache) as string;
-      core.info(decompressedCache)
+      core.info(`Cached files: ${decompressedCache}`);
       this.__cache = JSON.parse(decompressedCache);
     } catch (error) {
       core.error(error as Error);
