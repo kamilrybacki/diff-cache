@@ -5,6 +5,7 @@ import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
 import { CommitComparisonResponse } from './types.js';
+import { OctokitResponse } from '@octokit/types';
 
 class DiffCache {
   repoPublicKey: string;
@@ -117,7 +118,7 @@ class DiffCache {
     return await this.uploadCache(tag, value)
       .then(({status}) => {
         if (status != 201) {
-          throw new Error(`Unable to upload cache named ${tag}`)
+          throw new Error(`${status}: Unable to upload cache named ${tag}`)
         }
         core.info(`Uploaded artifact for ${tag}`)
       })
@@ -126,7 +127,7 @@ class DiffCache {
       });
   };
 
-  uploadCache = async function (this: DiffCache, tag: string, value: string): Promise<{status: number}> {
+  uploadCache = async function (this: DiffCache, tag: string, value: string): Promise<OctokitResponse<unknown, number>> {
     if (!this.__cache) {
       throw new Error('Cannot upload cache before loading it into memory. Check if you are calling load() before save()');
     }
