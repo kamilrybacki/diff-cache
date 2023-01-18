@@ -63,17 +63,14 @@ class DiffCache {
       })
   };
 
-  validateFiles = (files: string[], include: string, exclude: string): void => {
+  validateFiles = (files: string[], include: string, exclude: string): string[] => {
     const regex = new RegExp(include);
     const ignore = new RegExp(exclude);
-    files.forEach((file: string) => {
-      if (!file.match(regex)) {
-        throw new Error(`File ${file} does not match include regex ${include}. Check the cache loading/saving logic.`);
-      }
-      if (exclude && file.match(ignore)) {
-        throw new Error(`File ${file} matches exclude regex ${exclude}. Check the cache loading/saving logic.`);
-      }
-    });
+    return files.reduce((incorrect_files: string[], file: string) => {
+      if (!file.match(regex)) incorrect_files.push(file);
+      if (exclude && file.match(ignore)) incorrect_files.push(file);
+      return incorrect_files
+    }, []);
   };
 
   diff = async function (this: DiffCache, include: string, exclude: string): Promise<string> {
