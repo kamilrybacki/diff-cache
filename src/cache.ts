@@ -129,7 +129,7 @@ class DiffCache {
         if (status != 201 && status != 204) {
           throw new Error(`${status}: Unable to upload cache named ${tag}`)
         }
-        core.info(`Uploaded artifact for ${tag}`)
+        core.info(`Uploaded cache for ${tag}`)
       })
       .catch((error: Error) => {
         throw new Error(error.message);
