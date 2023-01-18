@@ -174,8 +174,11 @@ class DiffCache {
 
   lazyLoadCache = async function (this: DiffCache): Promise<void> {
     const storedCache = core.getInput('cache');
-    if (storedCache === 'true') {
-      core.info('Cache is completely empty due to first time use. Using an empty JSON.');
+    try {
+      core.info('Checking if cache is a valid JSON.')
+      JSON.parse(storedCache);
+    } catch (error) {
+      core.info('Cache is not a valid JSON due to first time use. Resetting it an empty one.');
       this.__cache = {};
       return;
     }

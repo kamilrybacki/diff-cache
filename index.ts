@@ -23,7 +23,7 @@ async function run() {
           core.info(`Cached files: ${cachedFilesList}`);
           core.info(`Staged files: ${stagedFilesList}`);
           if (stagedFilesList.length) {
-            const filesToCache = [...new Set(...stagedFiles, ...cachedFilesList)];
+            const filesToCache = [...new Set(...stagedFilesList, ...cachedFilesList)];
             if (filesToCache.length && filesToCache !== cachedFilesList) {
               core.info(`Files to cache: ${filesToCache}`);
               await cache.save(cacheTag, filesToCache.join(' '));
