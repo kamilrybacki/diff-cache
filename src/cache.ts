@@ -165,9 +165,10 @@ class DiffCache {
       throw new Error('Cannot encrypt cache before loading libsodium');
     }
     return await this.encryptor().then((SodiumInstance: typeof Sodium) => {
-      const keyBytes = SodiumInstance.from_base64(this.repoPublicKey, SodiumInstance.base64_variants.ORIGINAL);
+      const base64_variant = SodiumInstance.base64_variants.ORIGINAL;
+      const keyBytes = SodiumInstance.from_base64(this.repoPublicKey, base64_variant);
       const encryptedBytes = SodiumInstance.crypto_box_seal(valueBytes, keyBytes);
-      return SodiumInstance.to_base64(encryptedBytes, SodiumInstance.base64_variants.ORIGINAL);
+      return SodiumInstance.to_base64(encryptedBytes, base64_variant);
     });
   };
 
