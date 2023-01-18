@@ -22,7 +22,9 @@ const run = async () => {
           core.info(`Staged files: ${stagedFiles}`);
           if (stagedFiles.length) {
             const allFilesList = `${cachedFiles} ${stagedFiles}`.split(' ');
-            const filesToCache = [...new Set(allFilesList)];
+            const filesToCache = [
+              ...new Set(allFilesList.filter((file: string) => file.length))
+            ];
             if(filesToCache.length) {
               const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);
               if (incorrect_entires.length > 0) {
