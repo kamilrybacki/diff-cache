@@ -20,11 +20,15 @@ async function run() {
           const cachedFiles = cache.load(cacheTag);
           const cachedFilesList = cachedFiles.split(' ');
           const stagedFilesList = stagedFiles.split(' ');
+          core.info(`Cached files: ${cachedFilesList}`);
+          core.info(`Staged files: ${stagedFilesList}`);
           if (stagedFilesList.length) {
             const filesToCache = stagedFilesList.filter((file: string) => !cachedFilesList.includes(file));
             if (filesToCache.length && filesToCache !== cachedFilesList) {
               core.info(`Files to cache: ${filesToCache}`);
               await cache.save(cacheTag, filesToCache.join(' '));
+            } else {
+              core.info('No new files to cache!');
             }
           }
         });

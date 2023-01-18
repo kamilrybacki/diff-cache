@@ -52,8 +52,6 @@ class DiffCache {
     })
       .then(async function ({data}) {
         core.info(`Successfully retrieved repo public key`);
-        core.info(`Repo public key: ${data.key}`);
-        core.info(`Repo public key id: ${data.key_id}`);
         const {source, target} = DiffCache.determineDiffStates();
         await Sodium.ready;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -184,7 +182,6 @@ class DiffCache {
     core.info('Loaded encrypted cache passed through action input')
     try {
       const decompressedCache = LZString.decompress(storedCache) as string;
-      core.info(`Cached files: ${decompressedCache}`);
       this.__cache = JSON.parse(decompressedCache);
     } catch (error) {
       core.error(error as Error);
