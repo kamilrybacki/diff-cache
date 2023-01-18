@@ -117,7 +117,7 @@ class DiffCache {
   save = async function (this: DiffCache, tag: string, value: string): Promise<void> {
     return await this.uploadCache(tag, value)
       .then(({status}) => {
-        if (status != 201) {
+        if (status != 201 && status != 204) {
           throw new Error(`${status}: Unable to upload cache named ${tag}`)
         }
         core.info(`Uploaded artifact for ${tag}`)
