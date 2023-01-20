@@ -8,12 +8,14 @@ const run = async () => {
   const exclude = core.getInput('exclude');
   if (exclude) core.info(`Using ignore: ${exclude}`);
 
-  const cacheTag = core.getInput('tag', {required: true});
-  if (cacheTag) core.info(`Using cache tag: ${cacheTag}`);
+  const cacheTag = `${include}&&${exclude}`;
+
+  const secretName = core.getInput('name', {required: true});
+  if (secretName) core.info(`Using secret name: ${secretName}`);
 
   const token = core.getInput('token', {required: true});
   await DiffCache
-    .access(token)
+    .access(token, secretName)
     .then(async (cache: DiffCache) => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
@@ -47,4 +49,4 @@ const run = async () => {
   });
 };
 
-run();
+export default run;

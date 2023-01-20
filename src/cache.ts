@@ -7,10 +7,13 @@ import { GitHub } from '@actions/github/lib/utils';
 import { CommitComparisonResponse } from './types.js';
 import { OctokitResponse } from '@octokit/types';
 
+const CACHE_SECRET_NAME = 'DIFF_CACHE';
+
 class DiffCache {
+  authenticatedAPI: InstanceType<typeof GitHub>;
+  secretName: string;
   repoPublicKey: string;
   repoPublicKeyId: string;
-  authenticatedAPI: InstanceType<typeof GitHub>;
   source: string;
   target: string;
   private encryptor: typeof Sodium | undefined = undefined;
@@ -19,6 +22,7 @@ class DiffCache {
 
   constructor (
     authenticatedAPI: InstanceType<typeof GitHub>,
+    secretName: string,
     repoPublicKey: string,
     repoPublicKeyId: string,
     source: string,
@@ -26,6 +30,7 @@ class DiffCache {
     encryptor: typeof Sodium
   ) {
     this.authenticatedAPI = authenticatedAPI;
+    this.secretName = secretName;
     this.repoPublicKey = repoPublicKey;
     this.repoPublicKeyId = repoPublicKeyId;
     this.source = source;
@@ -33,17 +38,36 @@ class DiffCache {
     this.encryptor = encryptor;
   }
 
-  static access = async function (token: string): Promise<DiffCache> {
+  static access = async function (token: string, secretName: string): Promise<DiffCache> {
     if (!DiffCache.__instance) {
-      await DiffCache.initialize(token)
-        .then((instance: DiffCache) => DiffCache.__instance = instance);
+      await DiffCache.initialize(token, secretName)
+        .then((instance: DiffCache) => {
+          DiffCache.__instance = instance
+          instance.checkIfCacheSecretExists()
+            .then((response: OctokitResponse<unknown, number>) => {
+              if (response.status === 200) {
+                core.info(`Secret ${secretName} already exists`);
+              } else {
+                core.info(`Secret ${secretName} does not exist. Creating...`);
+                instance.initializeCacheSecret()
+                  .then((response: OctokitResponse<unknown, number>) => {
+                    if (response.status === 201) {
+                      core.info(`Successfully created secret ${secretName}`);
+                    } else {
+                      throw new Error(`Unable to create secret ${secretName}`);
+                    }
+                  }
+                );
+              }
+            });
+      });
     }
     process.env.GITHUB_TOKEN = token;
     process.env.ACTIONS_RUNTIME_TOKEN = token;
     return DiffCache.__instance as DiffCache;
   }
 
-  private static initialize = async function (token: string): Promise<DiffCache> {
+  private static initialize = async function (token: string, secretName: string): Promise<DiffCache> {
     const authenticatedAPI = getOctokit(token)
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.rest.actions.getRepoPublicKey({
@@ -56,11 +80,31 @@ class DiffCache {
         await Sodium.ready;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        return new DiffCache(authenticatedAPI, data.key, data.key_id, source, target, Sodium.default);
+        return new DiffCache(authenticatedAPI, secretName, data.key, data.key_id, source, target, Sodium.default);
       })
       .catch((error: Error) => {
         throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
-      })
+      });
+  };
+
+  checkIfCacheSecretExists = async function (this: DiffCache): Promise<OctokitResponse<unknown, number>> {
+    return await this.authenticatedAPI.request('GET /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      secret_name: this.secretName
+    });
+  };
+
+  initializeCacheSecret = async function (this: DiffCache): Promise<OctokitResponse<unknown, number>> {
+    return await this.authenticatedAPI.request(
+      'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        secret_name: this.secretName,
+        encrypted_value: this.encrypt(''),
+        key_id: this.repoPublicKeyId
+      }
+    );
   };
 
   validateFiles = (files: string[], include: string, exclude: string): string[] => {
@@ -153,7 +197,7 @@ class DiffCache {
         'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
           owner: context.repo.owner,
           repo: context.repo.repo,
-          secret_name: 'DIFF_CACHE',
+          secret_name: this.secretName,
           encrypted_value: encryptedCache,
           key_id: this.repoPublicKeyId
         }
@@ -184,8 +228,12 @@ class DiffCache {
   };
 
   lazyLoadCache = async function (this: DiffCache): Promise<void> {
+    const storedCache = process.env.DCACHE;
+    if (!storedCache) {
+      core.info('No cache env variable found!');
+      throw new Error('No cache env variable found!');
+    }
     try {
-      const storedCache = core.getInput('cache');
       core.info('Loaded encrypted cache passed through action input')
       const decompressedCache = LZString.decompress(storedCache) as string;
       if (!decompressedCache) {
