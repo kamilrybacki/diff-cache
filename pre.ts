@@ -12,5 +12,8 @@ export const prerun = async () => {
     .then(({data}) => {
       data[0].steps.forEach(({url}: {url: string}) => core.info(`Step: ${url}`))
     }
+  ).catch((error: Error) => {
+    throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
+  }
   );
 };
