@@ -7,6 +7,6 @@ export const prerun = async () => {
   await api.request('GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}', {
     owner: context.repo.owner,
     repo: context.repo.repo,
-    workflow_id: context.workflow,
+    workflow_id: context.runId,
   }).then(({data}) => core.info(JSON.stringify(data, null, 2)));
 };
