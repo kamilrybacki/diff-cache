@@ -13,7 +13,7 @@ export const prerun = async () => {
     .then(({data}) => {
       const currentWorkflowUrl = data.workflow_url;
       core.info(`Current workflow url: ${currentWorkflowUrl}`);
-      return await fetch(
+      return fetch(
         currentWorkflowUrl, {
           method: 'GET',
           headers: {
