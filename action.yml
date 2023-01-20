@@ -9,10 +9,10 @@ inputs:
     description: 'Tag used to identify the cache to be used. Same as the name of the secret containing the cache.'
     required: true
   cache:
-    description: 'Previously stored cache to use for the comparison. Set it to previously created SMART_DIFF_CACHE secret!'
+    description: 'Previously stored cache to use for the comparison. Set it to previously created DIFF_CACHE secret!'
     required: true
   token:
-    description: 'Github token to use for the API calls. Set it to previously created SMART_DIFF_TOKEN secret!'
+    description: 'Github token to use for the API calls.'
     required: true
   exclude:
     description: 'Regex to use to match the files to ignore.'

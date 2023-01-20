@@ -33,5 +33,5 @@ jobs:
       with:
         include: '.*\.ts'
         tag: 'test_ts'
-        token: ${{ secrets.SMART_DIFF_TOKEN }}
-        cache: ${{ secrets.SMART_DIFF_CACHE }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        cache: ${{ secrets.DIFF_CACHE }}
