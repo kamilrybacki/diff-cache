@@ -1,7 +1,7 @@
 import core from '@actions/core';
 import {getOctokit, context} from '@actions/github';
 
-const run = async () => {
+export const prerun = async () => {
   const token = core.getInput('token', {required: true});
   const api = getOctokit(token);
   await api.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs?sort=completed_at:desc', {
@@ -15,5 +15,3 @@ const run = async () => {
     }
   );
 };
-
-run();
