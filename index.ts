@@ -48,4 +48,4 @@ const run = async () => {
 };
 
 prerun()
-  .then(() => run());
+  // .then(() => run());
