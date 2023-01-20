@@ -13,5 +13,4 @@ export const prerun = async () => {
       throw new Error(`Unable to get workflow info: ${error.message}`);
     })
     .then((response) => core.info(`Workflow info: ${JSON.stringify(response.data)}`))
-  )
 };
