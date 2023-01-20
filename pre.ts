@@ -4,13 +4,12 @@ import {getOctokit, context} from '@actions/github';
 export const prerun = async () => {
   const token = core.getInput('token', {required: true});
   const api = getOctokit(token);
-  await api.request('GET /repos/{owner}/{repo}/commits/{head_sha}', {
+  await api.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', {
     owner: context.repo.owner,
     repo: context.repo.repo,
-    head_sha: context.sha,
-  }).then(
-    (response) => {
-      core.info(`Response: ${JSON.stringify(response)}`);
-    }
-  )
+    run_id: context.runId,
+  }).then((response) => {
+    const {data} = response;
+    console.log(JSON.stringify(data, null, 2));
+  });
 };
