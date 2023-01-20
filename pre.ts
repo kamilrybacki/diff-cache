@@ -26,7 +26,10 @@ export const prerun = async () => {
     .catch((error: Error) => {
       throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
     })
-    .then(({path}) => {
-      core.info(`Current workflow path: ${path}`);
+    .then((response) => {
+      core.info(`${JSON.stringify(response, null, 2)}`);
+    })
+    .catch((error: Error) => {
+      throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
     });
 };
