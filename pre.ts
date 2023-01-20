@@ -1,6 +1,6 @@
 import core from '@actions/core';
 import {getOctokit, context} from '@actions/github';
-import { request } from 'https';
+import fetch from 'node-fetch';
 
 export const prerun = async () => {
   const token = core.getInput('token', {required: true});
@@ -13,7 +13,7 @@ export const prerun = async () => {
     .then(({data}) => {
       const currentWorkflowUrl = data.workflow_url;
       core.info(`Current workflow url: ${currentWorkflowUrl}`);
-      return request(
+      return await fetch(
         currentWorkflowUrl, {
           method: 'GET',
           headers: {
@@ -26,8 +26,8 @@ export const prerun = async () => {
     .catch((error: Error) => {
       throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
     })
-    .then((response) => {
-      core.info(`${JSON.stringify(response, null, 2)}`);
+    .then(({body}) => {
+      core.info(`${JSON.stringify(body, null, 2)}`);
     })
     .catch((error: Error) => {
       throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
