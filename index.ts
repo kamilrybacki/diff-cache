@@ -47,5 +47,5 @@ const run = async () => {
   });
 };
 
-prerun();
-run();
+prerun()
+  .then(() => run());

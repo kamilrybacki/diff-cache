@@ -19,5 +19,4 @@ outputs:
     description: 'List of changed files kept as GH Workflow output for convenience.'
 runs:
   using: 'node16'
-  pre: 'dist/pre.js'
   main: 'dist/index.js'
