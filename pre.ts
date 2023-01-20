@@ -9,11 +9,9 @@ export const prerun = async () => {
     repo: context.repo.repo,
     run_id: context.runId
   })
-    .then(({data}) => {
-      data[0].steps.forEach(({url}: {url: string}) => core.info(`Step: ${url}`))
-    }
-  ).catch((error: Error) => {
-    throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
-  }
-  );
+    .catch((error: Error) => {
+      throw new Error(`Unable to get workflow info: ${error.message}`);
+    })
+    .then((response) => core.info(`Workflow info: ${JSON.stringify(response.data)}`))
+  )
 };
