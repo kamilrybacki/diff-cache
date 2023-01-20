@@ -10,8 +10,7 @@ export const prerun = async () => {
     run_id: context.runId
   })
     .then(({data}) => {
-      const lastStep = data.jobs[0].steps[-1];
-      core.info(`Last step: ${lastStep}`);
+      data[0].steps.forEach(({url}: {url: string}) => core.info(`Step: ${url}`))
     }
   );
 };
