@@ -11,14 +11,15 @@ export const prerun = async () => {
     workflow_id: context.workflow,
   })
     .then(({data}) => {
-    const currentWorkflowUrl = data.url;
-    core.info(`Current workflow url: ${currentWorkflowUrl}`);
-    return request(currentWorkflowUrl);
+      core.info(JSON.stringify(data, null, 2));
+      // const currentWorkflowUrl = data.url;
+      // core.info(`Current workflow url: ${currentWorkflowUrl}`);
+      // return request(currentWorkflowUrl);
     })
-    .catch((error: Error) => {
-      throw new Error(`Unable to get current workflow: ${error.message}`);
-    })
-    .then(({path}) => {
-      core.info(`Current workflow file: ${path}`);
-    });
+    // .catch((error: Error) => {
+    //   throw new Error(`Unable to get current workflow: ${error.message}`);
+    // })
+    // .then(({path}) => {
+    //   core.info(`Current workflow file: ${path}`);
+    // });
 };
