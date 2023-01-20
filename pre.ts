@@ -11,7 +11,7 @@ export const prerun = async () => {
     workflow_id: context.workflow,
   })
     .then(({data}) => {
-    const currentWorkflowUrl = data.workflow_url;
+    const currentWorkflowUrl = data.url;
     core.info(`Current workflow url: ${currentWorkflowUrl}`);
     return request(currentWorkflowUrl);
     })
