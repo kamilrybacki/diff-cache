@@ -1,6 +1,6 @@
 import core from '@actions/core';
 import {getOctokit, context} from '@actions/github';
-import { request } from 'http';
+import { request } from 'https';
 
 export const prerun = async () => {
   const token = core.getInput('token', {required: true});
@@ -12,10 +12,19 @@ export const prerun = async () => {
   }).then(({data}) => {
     const currentWorkflowUrl = data.workflow_url;
     core.info(`Current workflow url: ${currentWorkflowUrl}`);
-    return request(currentWorkflowUrl, (res) => {
-      res.on('data', (chunk) => {
-        core.info(`Current workflow: ${chunk}`);
-      });
+    return request(
+      currentWorkflowUrl, {
+        method: 'GET',
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "Authorization": `Bearer ${token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+        }
+      },
+      (res) => {
+        res.on('data', (chunk) => {
+          core.info(`Current workflow: ${chunk}`);
+        });
     });
   });
 };
