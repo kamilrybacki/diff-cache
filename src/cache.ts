@@ -188,8 +188,13 @@ class DiffCache {
       const storedCache = core.getInput('cache');
       core.info('Loaded encrypted cache passed through action input')
       const decompressedCache = LZString.decompress(storedCache) as string;
-      core.info('Checking if cache is a valid JSON.')
-      this.__cache = JSON.parse(decompressedCache);
+      if (!decompressedCache) {
+        core.info('Cache is empty. Resetting it an empty one.');
+        this.__cache = {};
+      } else {
+        core.info('Checking if cache is a valid JSON.')
+        this.__cache = JSON.parse(decompressedCache);
+      }
     } catch (error) {
       core.info('Cache is not a valid JSON due to first time use. Resetting it an empty one.');
       this.__cache = {};
