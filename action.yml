@@ -5,8 +5,8 @@ inputs:
   include:
     description: 'Regex to use to match the files to include.'
     required: true
-  name:
-    description: 'Name of repo secret containing the cache.'
+  cache:
+    description: 'Secret containing the cache.'
     required: true
   token:
     description: 'Github token to use for the API calls.'
@@ -17,38 +17,7 @@ inputs:
 outputs:
   files:
     description: 'List of changed files kept as GH Workflow output for convenience.'
-    value: ${{ steps.diff.outputs.files }}
 runs:
-  using: 'composite'
-  steps:
-    - name: 'Read repository secrets and extract cache called ${{ inputs.name }}'
-      shell: bash
-      env:
-        SECRETS: ${{ toJson(secrets) }}
-      run:
-        echo "DCACHE=$(echo $SECRET | jq '.${{ inputs.name }}')" >> $GITHUB_ENV
-    - name: 'Check if cache exists'
-      shell: bash
-      run: |
-        if [ -z "$DCACHE" ]; then
-          echo "Envvar not set."
-          exit 1
-        fi
-        if [ "$DCACHE" == "null" ]; then
-          echo "Cache not found, creating new one."
-          exit 1
-        fi
-        exit 0
-    # - name: 'Run the JavaScript action'
-    #   id: diff
-    #   uses: actions/github-script@v6
-    #   with:
-    #     github-token: ${{ inputs.token }}
-    #     script: |
-    #       import run from './dist/index.js';
-    #       const files = await run({
-    #         include: '${{ inputs.include }}',
-    #         exclude: '${{ inputs.exclude }}',
-    #         name: '${{ inputs.secret_name }}',
-    #       });
-
+  using: 'node16'
+  pre: 'dist/pre.js'
+  main: 'dist/index.js'
