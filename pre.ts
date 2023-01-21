@@ -1,5 +1,5 @@
 import core from '@actions/core';
-import TriggeredWorkflow from './src/workflow';
+import TriggeredWorkflow from './src/workflow.js';
 
 export const prerun = async () => {
   const token = core.getInput('token');
