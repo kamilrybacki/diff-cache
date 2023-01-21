@@ -18,6 +18,8 @@ export const prerun = async () => {
 };
 
 const findSecretName = (content: string) => {
-  const lineWithSecret = content.match(CACHE_SECRET_REGEXP);
-  return lineWithSecret;
+  return content
+          .split('\n')
+          .filter((line: string) => line.match(CACHE_SECRET_REGEXP))
+          .map((line: string) => line.replace(' ','').match(/\$\{\{secrets\.([^}]+)\}\}/))[0]
 };
