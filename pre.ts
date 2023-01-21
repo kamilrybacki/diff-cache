@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 export const prerun = async () => {
   const token = core.getInput('token', {required: true});
   const api = getOctokit(token);
-  await api.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', {
+  const workflowFile = await api.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', {
     owner: context.repo.owner,
     repo: context.repo.repo,
     run_id: context.runId,
@@ -27,11 +27,10 @@ export const prerun = async () => {
     .catch((error: Error) => {
       throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
     })
-    .then((data) => data.json())
+    .then((data) => data.json() as Promise<{path: string}>)
     .catch((error: Error) => {
       throw new Error(`Unable to format response: ${error.message}`);
     })
-    .then((data) => {
-      core.info(`Workflow data: ${JSON.stringify(data)}`);
-    });
+    .then(({path}) => path);
+    core.info(`Current workflow file: ${workflowFile}`);
 };
