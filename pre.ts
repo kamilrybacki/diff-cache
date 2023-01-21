@@ -12,15 +12,14 @@ export const prerun = async () => {
     .then(async (workflow: TriggeredWorkflow) => {
       const workflowData = await workflow.data;
       const line = findSecretName(workflowData.content);
-      core.info(`Found secret name: ${line}`);
+      core.info(`Found secret name: ${JSON.stringify(line)}`);
     }
   );
 };
 
 const findSecretName = (content: string) => {
-  core.info(JSON.stringify(content.split('\n')))
   return content
           .split('\n')
           .filter((line: string) => line.match(CACHE_SECRET_REGEXP))
-          .map((line: string) => line.replace(' ','').match(/\$\{\{secrets\.([^}]+)\}\}/))[0]
+          .map((line: string) => line.replace(' ',''))
 };
