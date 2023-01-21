@@ -8,12 +8,12 @@ export const prerun = async () => {
     core.setFailed('No secret for cache provided.');
   }
   const token = core.getInput('token', {required: true});
-  TriggeredWorkflow.auth(token)
+  await TriggeredWorkflow.auth(token)
     .then(async (workflow: TriggeredWorkflow) => {
       const workflowData = await workflow.data;
       const line = findSecretName(workflowData.content);
       core.info(`Found secret name: ${JSON.stringify(line)}`);
-      core.saveState('CACHE_SECRET_NAME', line);
+      core.exportVariable('CACHE_SECRET_NAME', line);
     }
   );
 };
