@@ -22,7 +22,6 @@ export const prerun = async () => {
             "Authorization": `Bearer ${token}`,
             "X-GitHub-Api-Version": "2022-11-28",
           },
-          body: JSON.stringify({data}),
         })
       })
     .catch((error: Error) => {
