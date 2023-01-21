@@ -7,8 +7,6 @@ import { GitHub } from '@actions/github/lib/utils';
 import { CommitComparisonResponse } from './types.js';
 import { OctokitResponse } from '@octokit/types';
 
-const DIFF_CACHE_SECRET_NAME = 'DIFF_CACHE';
-
 class DiffCache {
   authenticatedAPI: InstanceType<typeof GitHub>;
   repoPublicKey: string;
@@ -48,6 +46,9 @@ class DiffCache {
   }
 
   private static initialize = async function (token: string): Promise<DiffCache> {
+    if (process.env.CACHE_SECRET_NAME === undefined) {
+      throw new Error('Cache secret name was not defined. Check the preprataion step defined in pre.ts script.');
+    }
     const authenticatedAPI = getOctokit(token)
     core.info('Successfully authenticated with GitHub API');
     return await authenticatedAPI.rest.actions.getRepoPublicKey({
@@ -72,7 +73,7 @@ class DiffCache {
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        secret_name: DIFF_CACHE_SECRET_NAME,
+        secret_name: process.env.CACHE_SECRET_NAME as string,
         encrypted_value: this.encrypt(''),
         key_id: this.repoPublicKeyId
       }
@@ -169,7 +170,7 @@ class DiffCache {
         'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
           owner: context.repo.owner,
           repo: context.repo.repo,
-          secret_name: DIFF_CACHE_SECRET_NAME,
+          secret_name: process.env.CACHE_SECRET_NAME as string,
           encrypted_value: encryptedCache,
           key_id: this.repoPublicKeyId
         }
