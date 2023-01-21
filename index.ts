@@ -6,6 +6,8 @@ const run = async () => {
   const include = core.getInput('include', {required: true});
   core.info(`Using regex: ${include}`);
 
+  core.info(process.env)
+
   const exclude = core.getInput('exclude');
   if (exclude) core.info(`Using ignore: ${exclude}`);
 
@@ -48,4 +50,4 @@ const run = async () => {
 };
 
 prerun()
-  // .then(() => run());
+  .then(() => run());
