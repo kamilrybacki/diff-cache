@@ -46,7 +46,7 @@ class DiffCache {
   }
 
   private static initialize = async function (token: string): Promise<DiffCache> {
-    if (process.env.CACHE_SECRET_NAME === undefined) {
+    if (!core.getState('CACHE_SECRET_NAME')) {
       throw new Error('Cache secret name was not defined. Check the preprataion step defined in pre.ts script.');
     }
     const authenticatedAPI = getOctokit(token)
@@ -73,7 +73,7 @@ class DiffCache {
       'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
-        secret_name: process.env.CACHE_SECRET_NAME as string,
+        secret_name: core.getState('CACHE_SECRET_NAME'),
         encrypted_value: this.encrypt(''),
         key_id: this.repoPublicKeyId
       }
@@ -170,7 +170,7 @@ class DiffCache {
         'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
           owner: context.repo.owner,
           repo: context.repo.repo,
-          secret_name: process.env.CACHE_SECRET_NAME as string,
+          secret_name: core.getState('CACHE_SECRET_NAME'),
           encrypted_value: encryptedCache,
           key_id: this.repoPublicKeyId
         }
