@@ -32,5 +32,5 @@ jobs:
     - uses: ./
       with:
         include: '.*\.ts'
-        cache: ${{ secrets.DIFF_CACHE }}
+        cache_secret: ${{ secrets.DIFF_CACHE }}
         token: ${{ secrets.DIFF_CACHE_TOKEN }}
