@@ -29,8 +29,35 @@ jobs:
         restore-keys: npm-
     - run: npm ci --ignore-scripts
     - run: npm run build
+    - name: Generate test filenames list
+      run: |
+        filenames=""
+        for i in {1..10}; do
+          filename=$(date +%s)-$i.mock
+          filenames+="$filename "
+        done
+        echo "FILENAMES=$filenames" >> $GITHUB_ENV
+    - name: Create Python files
+      run: |
+        mkdir -p $GITHUB_WORKSPACE/mock
+        cd $GITHUB_WORKSPACE/mock
+        for filename in $FILENAMES; do
+          echo "print('Hello, World!')" > $filename
+        done
     - uses: ./
       with:
-        include: '.*\.ts'
+        include: '.*\.mock'
         cache_secret: ${{ secrets.DIFF_CACHE }}
         token: ${{ secrets.DIFF_CACHE_TOKEN }}
+    - name: Compare values saved in secrets.DIFF_CACHE with list of filenames
+      env:
+        DIFF_CACHE: ${{ secrets.DIFF_CACHE }}
+        FILENAMES: ${{ env.FILENAMES }}
+      run: |
+        CACHED_FILES=$(echo "$DIFF_CACHE" | jq -r '..*\.mock&&')
+        echo "Files cached in secrets: $CACHED_FILES"
+        echo "Filenames generated for tests: $FILENAMES"
+        if [ "$CACHED_FILES" != "$FILENAMES" ]; then
+          echo "Values saved in secrets.DIFF_CACHE and list of filenames are different!"
+          exit 1
+        fi
