@@ -18,6 +18,7 @@ export const prerun = async () => {
 };
 
 const findSecretName = (content: string) => {
+  core.info(JSON.stringify(content.split('\n')))
   return content
           .split('\n')
           .filter((line: string) => line.match(CACHE_SECRET_REGEXP))
