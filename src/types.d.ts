@@ -68,11 +68,16 @@ export interface Verification {
   [k: string]: unknown;
 }
 
-export type WorkflowFileEntryData = {
+export type WorkflowFileAPIEntryData = {
   path: string;
   mode: string;
   type: string;
   sha: string;
   size: number;
   url: string;
+};
+
+export type WorkflowFile = {
+  path: string;
+  content: string;
 };
