@@ -30,11 +30,7 @@ class TriggeredWorkflow {
           };
         }
         return this.__workflowData as WorkflowFile;
-      },
-      value: {
-        path: '',
-        content: '',
-      },
+      }
     });
   }
 
