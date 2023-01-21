@@ -19,7 +19,7 @@ jobs:
       - uses: styfle/cancel-workflow-action@0.9.1
         with:
           workflow_id: 'Functionality tests'
-          access_token: ${{ secrets.SMART_DIFF_TOKEN }}
+          access_token: ${{ secrets.DIFF_CACHE_TOKEN }}
 
   lint-markdown:
     runs-on: ubuntu-latest
