@@ -5,7 +5,7 @@ inputs:
   include:
     description: 'Regex to use to match the files to include.'
     required: true
-  cache:
+  cache_secret:
     description: 'Secret containing the cache.'
     required: true
   token:

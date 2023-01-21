@@ -201,7 +201,7 @@ class DiffCache {
 
   lazyLoadCache = async function (this: DiffCache): Promise<void> {
     try {
-      const storedCache = core.getInput('cache', {required: true});
+      const storedCache = core.getInput('cache_secret', {required: true});
       core.info('Loaded encrypted cache passed through action input')
       const decompressedCache = LZString.decompress(storedCache) as string;
       if (!decompressedCache) {
