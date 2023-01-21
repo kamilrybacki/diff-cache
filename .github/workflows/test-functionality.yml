@@ -54,7 +54,7 @@ jobs:
         DIFF_CACHE: ${{ secrets.DIFF_CACHE }}
         FILENAMES: ${{ env.FILENAMES }}
       run: |
-        CACHED_FILES=$(echo "$DIFF_CACHE" | jq -r '..*\.mock&&')
+        CACHED_FILES=$(echo "$DIFF_CACHE" | jq -r '.".*\.mock&&"')
         echo "Files cached in secrets: $CACHED_FILES"
         echo "Filenames generated for tests: $FILENAMES"
         if [ "$CACHED_FILES" != "$FILENAMES" ]; then
