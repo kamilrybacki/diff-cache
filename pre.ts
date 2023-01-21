@@ -4,10 +4,8 @@ import TriggeredWorkflow from './src/workflow.js';
 const CACHE_SECRET_REGEXP = /cache_secret.*$/;
 
 export const prerun = async () => {
-  const secret_name = core.getInput('secret_name', {required: true});
-  if (!secret_name) {
-    core.info('No secret name provided. Skipping.');
-    return;
+  if (core.getInput('cache_secret', {required: true})) {
+    core.setFailed('No secret for cache provided.');
   }
   const token = core.getInput('token', {required: true});
   TriggeredWorkflow.auth(token)
