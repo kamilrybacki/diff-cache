@@ -17,19 +17,22 @@ export const prerun = async () => {
         currentWorkflowUrl, {
           method: 'GET',
           headers: {
+            'Content-Type': 'application/json',
             "Accept": "application/vnd.github+json",
             "Authorization": `Bearer ${token}`,
             "X-GitHub-Api-Version": "2022-11-28",
-          }
+          },
+          body: JSON.stringify({data}),
         })
       })
     .catch((error: Error) => {
       throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
     })
-    .then(({body}) => {
-      core.info(`${JSON.stringify(body, null, 2)}`);
-    })
+    .then((data) => data.json())
     .catch((error: Error) => {
-      throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
+      throw new Error(`Unable to format response: ${error.message}`);
+    })
+    .then((data) => {
+      core.info(`Workflow data: ${JSON.stringify(data)}`);
     });
 };
