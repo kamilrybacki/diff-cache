@@ -6,7 +6,7 @@ const run = async () => {
   const include = core.getInput('include', {required: true});
   core.info(`Using regex: ${include}`);
 
-  core.info(process.env)
+  core.info(JSON.stringify(process.env, null, 2));
 
   const exclude = core.getInput('exclude');
   if (exclude) core.info(`Using ignore: ${exclude}`);
