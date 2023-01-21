@@ -67,3 +67,12 @@ export interface Verification {
   signature: string | null;
   [k: string]: unknown;
 }
+
+export type WorkflowFileEntryData = {
+  path: string;
+  mode: string;
+  type: string;
+  sha: string;
+  size: number;
+  url: string;
+};
