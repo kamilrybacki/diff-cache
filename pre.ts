@@ -21,5 +21,5 @@ const findSecretName = (content: string) => {
   return content
           .split('\n')
           .filter((line: string) => line.match(CACHE_SECRET_REGEXP))
-          .map((line: string) => line.replace(' ',''))
+          .map((line: string) => line.trim().replace(/\s/g,''))
 };
