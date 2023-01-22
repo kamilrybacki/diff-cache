@@ -54,11 +54,7 @@ This Action can be used in the following way (as a step in the Workflow):
 
 ### Note
 
-The secret containing the cache is created by the Action, if it doesn't exist. This means that the secret
-must be created by the Action, and not by the user. This is because the secret is created by the Action
-using the Github API, and the API requires the token to be able to create the secret.
-
-This is why the `token` input is also required. The `token` needs to have the necessary scopes for reading Workflow info and managing repo Secrets.
+The `token` needs to have the necessary scopes for reading Workflow info and managing repo Secrets.
 The most secure solution is to use a fine-grained token, with only the necessary scopes. Check the [Github documentation](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#permissions-for-the-github_token) for more information about enabling the necessary scopes.
 
 #### **IMPORTANT**
