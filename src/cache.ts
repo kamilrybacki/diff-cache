@@ -13,8 +13,9 @@ class DiffCache {
   repoPublicKeyId: string;
   source: string;
   target: string;
-  private encryptor: typeof Sodium | undefined = undefined;
-  private __cache: { [key: string]: string } | undefined = undefined;
+  encryptor: typeof Sodium | undefined = undefined;
+  cache: { [key: string]: string } | undefined = undefined;
+  debug: boolean;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
@@ -31,6 +32,7 @@ class DiffCache {
     this.source = source;
     this.target = target;
     this.encryptor = encryptor;
+    this.debug = false;
   }
 
   static access = async function (token: string): Promise<DiffCache> {
@@ -68,16 +70,24 @@ class DiffCache {
       });
   };
 
-  initializeCacheSecret = async function (this: DiffCache): Promise<OctokitResponse<unknown, number>> {
-    return await this.authenticatedAPI.request(
-      'PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}', {
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        secret_name: process.env.CACHE_SECRET_NAME as string,
-        encrypted_value: this.encrypt(''),
-        key_id: this.repoPublicKeyId
-      }
-    );
+  static determineDiffStates = (): { source: string, target: string } => {
+    if (context.eventName === 'pull_request'){
+      return {
+        source: context.payload.pull_request?.base.sha,
+        target: context.payload.pull_request?.head.sha
+      };
+    } else if (context.eventName === 'push') {
+      return {
+        source: context.payload.before,
+        target: context.payload.after
+      };
+    } else {
+      throw new Error(`${context.eventName} event type is not supported by SimpleCache. Check the documentation for supported events.`);
+    }
+  };
+
+  setDebug = function (this: DiffCache, debug: boolean): void {
+    this.debug = debug;
   };
 
   validateFiles = (files: string[], include: string, exclude: string): string[] => {
@@ -124,22 +134,6 @@ class DiffCache {
       })
   };
 
-  static determineDiffStates = (): { source: string, target: string } => {
-    if (context.eventName === 'pull_request'){
-      return {
-        source: context.payload.pull_request?.base.sha,
-        target: context.payload.pull_request?.head.sha
-      };
-    } else if (context.eventName === 'push') {
-      return {
-        source: context.payload.before,
-        target: context.payload.after
-      };
-    } else {
-      throw new Error(`${context.eventName} event type is not supported by SimpleCache. Check the documentation for supported events.`);
-    }
-  };
-
   save = async function (this: DiffCache, tag: string, value: string): Promise<void> {
     return await this.uploadCache(tag, value)
       .then(({status}) => {
@@ -154,14 +148,14 @@ class DiffCache {
   };
 
   uploadCache = async function (this: DiffCache, tag: string, value: string): Promise<OctokitResponse<unknown, number>> {
-    if (!this.__cache) {
+    if (!this.cache) {
       throw new Error('Cannot upload cache before loading it into memory. Check if you are calling load() before save()');
     }
     core.setOutput('files', value)
     core.info(`Saving cache for ${tag}...`)
     try {
-      this.__cache = Object.assign(this.__cache, {[tag]: value});
-      const cacheString = JSON.stringify(this.__cache);
+      this.cache = Object.assign(this.cache, {[tag]: value});
+      const cacheString = JSON.stringify(this.cache);
       const compressedCache = LZString.compress(cacheString);
       core.info('Cache compressed!')
       const encryptedCache = this.encrypt(compressedCache);
@@ -195,26 +189,28 @@ class DiffCache {
   };
 
   load = function (this: DiffCache, tag: string): string {
-    if (!this.__cache) this.lazyLoadCache();
-    const currentCache = this.__cache as {[key: string]: string};
+    if (!this.cache) this.lazyLoadCache();
+    const currentCache = this.cache as {[key: string]: string};
     return Object.hasOwn(currentCache, tag) ? currentCache[tag] : '';
   };
 
   lazyLoadCache = async function (this: DiffCache): Promise<void> {
     try {
-      const storedCache = core.getInput('cache_secret', {required: true});
+      const storedCache = this.debug ?
+        process.env.CACHE_SECRET as string
+        : core.getInput('cache_secret', {required: true});
       core.info('Loaded encrypted cache passed through action input')
       const decompressedCache = LZString.decompress(storedCache) as string;
       if (!decompressedCache) {
         core.info('Cache is empty. Resetting it an empty one.');
-        this.__cache = {};
+        this.cache = {};
       } else {
         core.info('Checking if cache is a valid JSON.')
-        this.__cache = JSON.parse(decompressedCache);
+        this.cache = JSON.parse(decompressedCache);
       }
     } catch (error) {
       core.info('Cache is not a valid JSON due to first time use. Resetting it an empty one.');
-      this.__cache = {};
+      this.cache = {};
     }
   };
 }
