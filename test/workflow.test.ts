@@ -3,7 +3,7 @@ import {getOctokit} from "@actions/github";
 import {GitHub} from "@actions/github/lib/utils";
 import {OctokitResponse} from "@octokit/types";
 import TriggeredWorkflow from "../src/workflow";
-import { WorkflowFileAPIEntryData, WorkflowFile } from './types';
+import { WorkflowFileAPIEntryData, WorkflowFile } from '../src/types';
 import * as filesystem from 'fs/promises';
 
 type EmojiResponse = OctokitResponse<{[key: string]: string}> | undefined
