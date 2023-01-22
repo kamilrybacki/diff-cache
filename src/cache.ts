@@ -102,7 +102,7 @@ class DiffCache {
   };
 
   diff = async function (this: DiffCache, include: string, exclude: string): Promise<string> {
-    console.log(`Checking changed files using pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`);
+    core.info(`Checking changed files using pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`);
     return await this.authenticatedAPI.rest.repos.compareCommitsWithBasehead({
       owner: context.repo.owner,
       repo: context.repo.repo,

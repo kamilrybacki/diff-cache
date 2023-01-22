@@ -31,6 +31,8 @@ describe("Test workflow file reading", () => {
     const workflowFileEmojis: EmojiResponse = await workflowFileHandler.api.rest.emojis.get();
     const octokitEmojis: EmojiResponse = await authenticatedOctokit?.rest.emojis.get();
 
+    console.log(workflowFileEmojis, octokitEmojis)
+
     expect(workflowFileEmojis?.status).toBe(200);
     expect(octokitEmojis?.status).toBe(200);
     expect(workflowFileEmojis?.data).toEqual(octokitEmojis?.data);
