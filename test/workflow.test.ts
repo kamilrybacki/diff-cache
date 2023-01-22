@@ -60,7 +60,8 @@ describe("Test workflow file reading", () => {
 
     test("Check if workflow file is fetched correctly", async () => {
       const fetcherFileContent = await workflowFile.findWorkflowFileContent(currentCommitTree, workflowFilePath);
-      const fileContentReadByContainer = await filesystem.readFile(expectedWorkflowFilePath, {encoding: 'utf-8'});
+      const filePathWithinTestContainer = `${process.env.GITHUB_WORKSPACE}/${expectedWorkflowFilePath}`;
+      const fileContentReadByContainer = await filesystem.readFile(`${filePathWithinTestContainer}`, {encoding: 'utf-8'});
       expect(fetcherFileContent).toBe(fileContentReadByContainer);
     });
   })
