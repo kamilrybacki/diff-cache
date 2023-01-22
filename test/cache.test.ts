@@ -119,10 +119,13 @@ describe("Test caching mechanisms", () => {
     test("Load, modify and save cache", async () => {
       const bobEntry = authenticatedDiffCache.load('bob');
       expect(bobEntry).toBe('Bob');
-      authenticatedDiffCache.save('bob', 'Bobby');
-      await checkIfTestSecretExistsInRepo();
-      await deleteTestSecretFromRepo();
+      await authenticatedDiffCache.save('bob', 'Bobby')
+        .then(async () => {
+          await checkIfTestSecretExistsInRepo();
+        })
+        .then(async () => {
+          await deleteTestSecretFromRepo();
+        });
     });
-
   });
 });
