@@ -1,4 +1,4 @@
-name: 'SmartDiff'
+name: 'DiffCache'
 author: 'Kamil Rybacki'
 description: 'Finds files that have changed since last code SUCCESSFUL workflow.'
 inputs:
