@@ -22,12 +22,12 @@ jobs:
 
   lint-markdown:
     runs-on: ubuntu-latest
-    env:
-      INPUT_CONFIG: /markdown-lint.yml
     steps:
     - uses: actions/checkout@v3
     - name: Find Markdown files
       run: echo "MARKDOWN_FILES=$(find . -name '*.md' -not -path './node_modules/*' -not -path './.github/*')" >> $GITHUB_ENV
+    - name: Set config for Markdown Lint
+      run: echo "INPUT_CONFIG=/markdown-lint.yml" >> $GITHUB_ENV
     - name: Lint Markdown files
       uses: avto-dev/markdown-lint@v1
       with:
