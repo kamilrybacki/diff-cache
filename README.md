@@ -63,7 +63,7 @@ The secret MUST be created by the user **ONCE** and then it is updated by the Ac
 This means that the secret should not be used for anything else. If there is anything present within it,
 then the Action will **overwrite its contents**.
 
-The name of the secret is obtained **by parsing** from the Github Worklfow file that contains the triggered action.
+The name of the secret is obtained **by parsing** from the Github Workflow file that contains the triggered action.
 This may sound confusing but the flow of this Action is as follows:
 
 1. The Action is triggered by the Workflow file.
