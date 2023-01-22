@@ -1,4 +1,3 @@
-import core from '@actions/core';
 import {getOctokit, context} from '@actions/github';
 import fetch from 'node-fetch';
 import { WorkflowFileAPIEntryData, WorkflowFile } from './types';
@@ -50,7 +49,6 @@ class ActiveWorkflowFileReader {
       })
         .then(({data}) => {
           const currentWorkflowUrl = data.workflow_url;
-          core.info(`Current workflow url: ${currentWorkflowUrl}`);
           return fetch(currentWorkflowUrl, {
             method: 'GET',
             headers: {
@@ -62,7 +60,7 @@ class ActiveWorkflowFileReader {
             })
           })
         .catch((error: Error) => {
-          throw new Error(`Unable to initialize SimpleCache: ${error.message}`);
+          throw new Error(`Unable to send request for file path: ${error.message}`);
         })
         .then((data) => data.json() as Promise<{path: string}>)
         .catch((error: Error) => {
