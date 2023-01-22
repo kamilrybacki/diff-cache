@@ -6,10 +6,10 @@ import { GitHub } from '@actions/github/lib/utils';
 
 class TriggeredWorkflow {
   public data!: Promise<WorkflowFile>;
+  api: InstanceType<typeof GitHub>;
+  token: string;
 
   private __workflowData: WorkflowFile | undefined = undefined;
-  private readonly api: InstanceType<typeof GitHub>;
-  private readonly token: string;
   private static __instance: TriggeredWorkflow | undefined = undefined;
 
   constructor(
