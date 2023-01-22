@@ -23,6 +23,7 @@ describe("Test caching mechanisms", () => {
 
   beforeAll(async () => {
     expect(testsToken).toBeDefined();
+    process.env.CACHE_SECRET_NAME = "TEST_SECRET";
     authenticatedOctokit = getOctokit(testsToken as string);
   });
 
@@ -115,7 +116,6 @@ describe("Test caching mechanisms", () => {
     };
 
     test("Load, modify and save cache", () => {
-      process.env.CACHE_SECRET_NAME = "TEST_SECRET";
       const bobEntry = authenticatedDiffCache.load('bob');
       expect(bobEntry).toBe('Bob');
       authenticatedDiffCache.save('bob', 'Bobby');
