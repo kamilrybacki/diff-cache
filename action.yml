@@ -1,17 +1,21 @@
 name: 'SmartDiff'
 author: 'Kamil Rybacki'
-description: 'Finds files that have changed since last code SUCCESFUL workflow.'
+description: 'Finds files that have changed since last code SUCCESSFUL workflow.'
 inputs:
   include:
     description: 'Regex to use to match the files to include.'
+    required: true
+  cache_secret:
+    description: 'Secret containing the cache.'
+    required: true
+  token:
+    description: 'Github token to use for the API calls.'
     required: true
   exclude:
     description: 'Regex to use to match the files to ignore.'
     required: false
 outputs:
-  diff-log:
-    description: 'Output of the Github diff command.'
-  changed-files:
+  files:
     description: 'List of changed files kept as GH Workflow output for convenience.'
 runs:
   using: 'node16'

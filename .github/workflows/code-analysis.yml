@@ -1,0 +1,98 @@
+name: "Code Analysis"
+
+on:
+  push:
+  schedule:
+    - cron: '20 4 * * *'
+
+concurrency:
+  group: ${{ github.head_ref }}-code-analysis
+  cancel-in-progress: true
+
+jobs:
+  stop-tests:
+    name: 'Cancel Previous Runs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          workflow_id: 'Functionality tests'
+          access_token: ${{ secrets.DIFF_CACHE_TOKEN }}
+
+  lint-markdown:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Find Markdown files
+      run: echo "MARKDOWN_FILES=$(find . -name '*.md' -not -path './node_modules/*' -not -path './.github/*')" >> $GITHUB_ENV
+    - name: Lint Markdown files
+      uses: avto-dev/markdown-lint@v1
+      with:
+        args: ${{ env.MARKDOWN_FILES }}
+
+  lint-source:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: npm-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-
+    - name: Run ESLint
+      run: |
+        npm ci --ignore-scripts
+        npm run lint
+
+  check-for-vulnerabilities:
+    name: Scan repo for vulnerabilities
+    needs: [lint-markdown, lint-source]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'typescript', 'javascript' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+        config-file: ./.github/codeql/codeql-config.yml
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+  check-for-exposed-secrets:
+    name: Scan repo for exposed secrets
+    needs: [lint-markdown, lint-source]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: GitGuardian scan
+        uses: GitGuardian/ggshield-action@master
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GG_TOKEN }}

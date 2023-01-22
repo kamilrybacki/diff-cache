@@ -1,28 +1,51 @@
 import * as core from '@actions/core';
-import { check, update } from './src/stage';
+import {prerun} from './pre.js';
+import DiffCache from './src/cache.js';
 
-async function run() {
-  try {
-    core.info((new Date()).toTimeString());
-    const include = core.getInput('regex');
-    core.info(`Using regex: ${include}`);
-    const exclude = core.getInput('ignore');
-    core.info(`Using ignore: ${exclude}`);
+const run = async () => {
+  const include = core.getInput('include', {required: true});
+  core.info(`Using regex: ${include}`);
 
-    await check(include, exclude)
-      .then(async (stagedFiles: string) => {
-        stagedFiles != '' ? await update(stagedFiles) : core.info('No staged files to lint');
-    });
+  const exclude = core.getInput('exclude');
+  if (exclude) core.info(`Using ignore: ${exclude}`);
 
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      core.setFailed(error.message);
-    } else if (typeof error === 'string') {
-      core.setFailed(error);
-    } else {
-      core.setFailed('Unknown error! Check the logs for more information.');
-    }
-  }
-}
+  const cacheTag = `${include}&&${exclude}`;
 
-run();
+  const token = core.getInput('token', {required: true});
+  await DiffCache
+    .access(token)
+    .then(async (cache: DiffCache) => {
+      await cache.diff(include, exclude)
+        .then(async (stagedFiles: string) => {
+          const cachedFiles = cache.load(cacheTag);
+          core.info(`Cached files: ${cachedFiles}`);
+          core.info(`Staged files: ${stagedFiles}`);
+          if (stagedFiles.length) {
+            const allFilesList = `${cachedFiles} ${stagedFiles}`.split(' ');
+            const filesToCache = [
+              ...new Set(allFilesList.filter((file: string) => file.length))
+            ];
+            if(filesToCache.length) {
+              const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);
+              if (incorrect_entires.length > 0) {
+                core.info(`Incorrect entries: ${incorrect_entires}. Removing from cache list.`)
+              }
+              const cleanCache = filesToCache
+                                .filter((file: string) => !incorrect_entires.includes(file))
+                                .join(' ');
+              if (cleanCache.length && cleanCache!== cachedFiles) {
+                core.info(`Files to cache: ${cleanCache}`);
+                await cache.save(cacheTag, cleanCache);
+              } else {
+                core.info('No files to cache!');
+              }
+            } else {
+              core.info('No files to cache!');
+            }
+          }
+        });
+  });
+};
+
+prerun()
+  .then(() => run());
