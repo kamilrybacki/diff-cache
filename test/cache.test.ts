@@ -63,7 +63,7 @@ describe("Test caching mechanisms", () => {
       const encryptedString = authenticatedDiffCache.encrypt(testString);
       expect(encryptedString).toBeDefined();
       expect(encryptedString).not.toBe(testString);
-      expect(encryptedString).toBeInstanceOf(String);
+      expect(typeof encryptedString).toBe('string');
     });
 
     const checkWhichFilesHaveChangedAtThisCommit = async (): Promise<string[]> => {
@@ -86,14 +86,14 @@ describe("Test caching mechanisms", () => {
       const includeRegexp = changedFiles.join('|');
       const diffFromDiffCache = await authenticatedDiffCache.diff(includeRegexp, '');
       expect(diffFromDiffCache).toBeDefined();
-      expect(diffFromDiffCache).toBeInstanceOf(String);
+      expect(typeof diffFromDiffCache).toBe('string');
       expect(diffFromDiffCache).toBe(changedFiles.join(' '));
     });
 
     test("Check if lazy loading cache works", async () => {
       process.env.CACHE_SECRET = TEST_CACHE_CONTENT;
       await authenticatedDiffCache.lazyLoadCache();
-      expect(authenticatedDiffCache.cache).toEqual(TEST_CACHE_CONTENT);
+      expect(authenticatedDiffCache.cache).toEqual(LZString.decompress(TEST_CACHE_CONTENT));
     });
 
     const checkIfTestSecretExistsInRepo = async () => {
