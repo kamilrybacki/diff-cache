@@ -55,7 +55,7 @@ describe("Test workflow file reading", () => {
       expect(currentCommitTree.length).toBeGreaterThan(0);
       expect(currentCommitTree.filter(
         (tree) => tree.path === expectedWorkflowFilePath
-      )).toBe(1);
+      ).length).toBe(1);
     });
 
     test("Check if workflow file is fetched correctly", async () => {
