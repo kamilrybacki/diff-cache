@@ -1,5 +1,5 @@
 import core from '@actions/core';
-import TriggeredWorkflow from './src/workflow.js';
+import ActiveWorkflowFileReader from './src/workflow.js';
 
 const CACHE_SECRET_REGEXP = /cache_secret.*$/;
 
@@ -8,8 +8,8 @@ export const prerun = async () => {
     core.setFailed('No secret for cache provided.');
   }
   const token = core.getInput('token', {required: true});
-  await TriggeredWorkflow.auth(token)
-    .then(async (workflow: TriggeredWorkflow) => {
+  await ActiveWorkflowFileReader.auth(token)
+    .then(async (workflow: ActiveWorkflowFileReader) => {
       const workflowData = await workflow.data;
       const line = findSecretName(workflowData.content);
       core.info(`Found secret name: ${JSON.stringify(line)}`);

@@ -2,8 +2,8 @@ import {describe, test, expect, beforeAll, beforeEach} from "@jest/globals";
 import {getOctokit} from "@actions/github";
 import {GitHub} from "@actions/github/lib/utils";
 import {OctokitResponse} from "@octokit/types";
-import TriggeredWorkflow from "../src/workflow";
-import { WorkflowFileAPIEntryData, WorkflowFile } from '../src/types';
+import ActiveWorkflowFileReader from "../src/workflow";
+import { WorkflowFileAPIEntryData } from '../src/types';
 import * as filesystem from 'fs/promises';
 
 type EmojiResponse = OctokitResponse<{[key: string]: string}> | undefined
@@ -11,7 +11,7 @@ type EmojiResponse = OctokitResponse<{[key: string]: string}> | undefined
 describe("Test workflow file reading", () => {
   const testsToken: string | undefined = process.env.TESTS_TOKEN;
   let authenticatedOctokit: InstanceType<typeof GitHub>;
-  let workflowFile: WorkflowFile;
+  let workflowFileHandler: ActiveWorkflowFileReader;
 
   const expectedWorkflowFilePath = ".github/workflows/test-functionality.yml";
 
@@ -21,14 +21,14 @@ describe("Test workflow file reading", () => {
   });
 
   beforeEach(async () => {
-    workflowFile = TriggeredWorkflow.auth(testsToken as string);
+    workflowFileHandler = await ActiveWorkflowFileReader.auth(testsToken as string);
   });
 
   test("Check if OctoKit API was authenticated correctly", async () => {
     expect(authenticatedOctokit).toBeDefined();
-    expect(workflowFile).toBeDefined();
+    expect(workflowFileHandler).toBeDefined();
 
-    const workflowFileEmojis: EmojiResponse = await workflowFile.api.rest.emojis.get();
+    const workflowFileEmojis: EmojiResponse = await workflowFileHandler.api.rest.emojis.get();
     const octokitEmojis: EmojiResponse = await authenticatedOctokit?.rest.emojis.get();
 
     expect(workflowFileEmojis?.status).toBe(200);
@@ -41,8 +41,8 @@ describe("Test workflow file reading", () => {
     let currentCommitTree: WorkflowFileAPIEntryData[];
 
     beforeAll(async () => {
-      workflowFilePath = await workflowFile.getTriggeredWorkflowFilePath();
-      currentCommitTree = await workflowFile.getCurrentCommitTree();
+      workflowFilePath = await workflowFileHandler.getTriggeredWorkflowFilePath();
+      currentCommitTree = await workflowFileHandler.getCurrentCommitTree();
       expect(workflowFilePath).toBeDefined();
       expect(currentCommitTree).toBeDefined();
     });
@@ -59,7 +59,7 @@ describe("Test workflow file reading", () => {
     });
 
     test("Check if workflow file is fetched correctly", async () => {
-      const fetcherFileContent = await workflowFile.findWorkflowFileContent(currentCommitTree, workflowFilePath);
+      const fetcherFileContent = await workflowFileHandler.findWorkflowFileContent(currentCommitTree, workflowFilePath);
       const filePathWithinTestContainer = `${process.env.GITHUB_WORKSPACE}/${expectedWorkflowFilePath}`;
       const fileContentReadByContainer = await filesystem.readFile(`${filePathWithinTestContainer}`, {encoding: 'utf-8'});
       expect(fetcherFileContent).toBe(fileContentReadByContainer);

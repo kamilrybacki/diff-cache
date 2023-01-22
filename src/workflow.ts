@@ -4,13 +4,13 @@ import fetch from 'node-fetch';
 import { WorkflowFileAPIEntryData, WorkflowFile } from './types';
 import { GitHub } from '@actions/github/lib/utils';
 
-class TriggeredWorkflow {
+class ActiveWorkflowFileReader {
   public data!: Promise<WorkflowFile>;
   api: InstanceType<typeof GitHub>;
   token: string;
 
   private __workflowData: WorkflowFile | undefined = undefined;
-  private static __instance: TriggeredWorkflow | undefined = undefined;
+  private static __instance: ActiveWorkflowFileReader | undefined = undefined;
 
   constructor(
     api: InstanceType<typeof GitHub>,
@@ -19,7 +19,7 @@ class TriggeredWorkflow {
     this.api = api;
     this.token = token;
     Object.defineProperty(this, 'data', {
-      get: async function (this: TriggeredWorkflow): Promise<WorkflowFile> {
+      get: async function (this: ActiveWorkflowFileReader): Promise<WorkflowFile> {
         if (!this.__workflowData) {
           const workflowPath = await this.getTriggeredWorkflowFilePath();
           const currentCommitTree = await this.getCurrentCommitTree();
@@ -34,15 +34,15 @@ class TriggeredWorkflow {
     });
   }
 
-  static auth = async function (token: string): Promise<TriggeredWorkflow> {
-    if (!TriggeredWorkflow.__instance) {
+  static auth = async function (token: string): Promise<ActiveWorkflowFileReader> {
+    if (!ActiveWorkflowFileReader.__instance) {
       const authenticatedAPI = getOctokit(token);
-      TriggeredWorkflow.__instance = new TriggeredWorkflow(authenticatedAPI, token);
+      ActiveWorkflowFileReader.__instance = new ActiveWorkflowFileReader(authenticatedAPI, token);
     }
-    return TriggeredWorkflow.__instance as TriggeredWorkflow;
+    return ActiveWorkflowFileReader.__instance as ActiveWorkflowFileReader;
   };
 
-  getTriggeredWorkflowFilePath = async function (this: TriggeredWorkflow): Promise<string> {
+  getTriggeredWorkflowFilePath = async function (this: ActiveWorkflowFileReader): Promise<string> {
     return await this.api.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', {
         owner: context.repo.owner,
         repo: context.repo.repo,
@@ -71,7 +71,7 @@ class TriggeredWorkflow {
         .then(({path}) => path);
   };
 
-  getCurrentCommitTree = async function (this: TriggeredWorkflow): Promise<WorkflowFileAPIEntryData[]> {
+  getCurrentCommitTree = async function (this: ActiveWorkflowFileReader): Promise<WorkflowFileAPIEntryData[]> {
     return await this.api.request('GET /repos/{owner}/{repo}/git/trees/{commit}?recursive=1', {
         owner: context.repo.owner,
         repo: context.repo.repo,
@@ -86,7 +86,7 @@ class TriggeredWorkflow {
         });
   };
 
-  findWorkflowFileContent = async function (this: TriggeredWorkflow, tree: WorkflowFileAPIEntryData[], workflowFilePath: string): Promise<string> {
+  findWorkflowFileContent = async function (this: ActiveWorkflowFileReader, tree: WorkflowFileAPIEntryData[], workflowFilePath: string): Promise<string> {
       const workflowFileEntry = tree.find((file: WorkflowFileAPIEntryData) => file.path === workflowFilePath);
       if (!workflowFileEntry) {
         throw new Error(`Unable to find workflow file in commit tree: ${workflowFilePath}`);
@@ -114,4 +114,4 @@ class TriggeredWorkflow {
   };
 }
 
-export default TriggeredWorkflow;
+export default ActiveWorkflowFileReader;
