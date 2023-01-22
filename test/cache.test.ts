@@ -14,7 +14,7 @@ describe("Test caching mechanisms", () => {
   let authenticatedOctokit: InstanceType<typeof GitHub>;
   let authenticatedDiffCache: DiffCache;
 
-  const TEST_CACHE_CONTENT = LZString.compress(
+  const TEST_CACHE_CONTENT: string = LZString.compress(
     JSON.stringify({
       bob: "Bob",
       alice: "Alice",
@@ -93,7 +93,8 @@ describe("Test caching mechanisms", () => {
     test("Check if lazy loading cache works", async () => {
       process.env.CACHE_SECRET = TEST_CACHE_CONTENT;
       await authenticatedDiffCache.lazyLoadCache();
-      expect(authenticatedDiffCache.cache).toEqual(LZString.decompress(TEST_CACHE_CONTENT));
+      const readableTestCache = JSON.parse(LZString.decompress(TEST_CACHE_CONTENT) as string);
+      expect(authenticatedDiffCache.cache).toEqual(readableTestCache);
     });
 
     const checkIfTestSecretExistsInRepo = async () => {
