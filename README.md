@@ -46,7 +46,7 @@ This Action can be used in the following way (as a step in the Workflow):
     with:
       # REQUIRED: Regex to use to match the files to include in the cache
       include: '.*.py'
-      # REQUIRED: Secret containing the cache. Doesn't have to be prepared beforehand, it will be created if it doesn't exist (see Note below).
+      # REQUIRED: Secret containing the cache. Has to be prepared beforehand
       cache_secret: ${{ secrets.CACHE_SECRET }}
       # REQUIRED: Github token to use for the API calls. It is required to be able to create the cache secret and to be able to update it (see Note below).
       token: ${{ secrets.TOKEN }}
@@ -135,4 +135,4 @@ One of the motivations for me was to learn how to write a Github Action and navi
 I also wanted to learn how to use the `libsodium-wrappers` library, which I used for the encryption of the data.
 There may be some cool lessons to learn by studying the `DiffCache` and `ActiveWorkflowFileReader` classes.
 
-If You have idead for improvements, feel free to open an issue or a PR. I will be happy to discuss it with You.
+If You have ideas for improvements, feel free to open an issue or a PR. I will be happy to discuss it with You.
