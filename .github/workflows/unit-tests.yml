@@ -33,6 +33,17 @@ jobs:
         echo "TESTS_TOKEN=$(echo ${{ secrets.DIFF_CACHE_TOKEN }})" >> $GITHUB_ENV
     - name: Run tests
       run: npm run test
+    - name: Enable manual execution of pre and post steps
+      run: |
+        echo "MANUAL_PRE=true" >> $GITHUB_ENV
+        echo "MANUAL_POST=true" >> $GITHUB_ENV
+    - name: Manually run the pre.js step
+      uses: actions/github-script@v6
+      id: pre-js
+      with:
+        script: |
+          import { run as pre } from './dist/pre.js';
+          await pre();
     - name: Prepare cache for Action test
       id: diff-cache
       uses: ./
@@ -47,3 +58,13 @@ jobs:
           exit 1
         fi
         echo "Files found: ${{ steps.diff-cache.outputs.files }}"
+    - name: Pass the cache manually throuh secret for debugging
+      run: |
+        echo "CACHE_SECRET=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
+    - name: Manually run the post.js step
+      uses: actions/github-script@v6
+      id: pre-js
+      with:
+        script: |
+          import { run as post } from './dist/post.js';
+          await post();

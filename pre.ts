@@ -4,10 +4,18 @@ import ActiveWorkflowFileReader from './src/workflow.js';
 const CACHE_SECRET_REGEXP = /cache_secret.*$/;
 
 const run = async () => {
-  if (!core.getInput('cache_secret', {required: true})) {
-    core.setFailed('No secret for cache provided.');
+  let token: string;
+  if (!process.env.MANUAL_PRE) {
+    if (!core.getInput('cache_secret', {required: true})) {
+      core.setFailed('No secret for cache provided.');
+    }
+    token = core.getInput('token', {required: true});
+  } else {
+    token = process.env.TESTS_TOKEN as string;
   }
-  const token = core.getInput('token', {required: true});
+  if (!token) {
+    core.setFailed('No token provided.');
+  }
   await ActiveWorkflowFileReader.auth(token)
     .then(async (workflow: ActiveWorkflowFileReader) => {
       const workflowData = await workflow.data;
