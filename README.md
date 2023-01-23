@@ -42,7 +42,7 @@ to check the necessary files. If all files are checked, then the cache is cleare
 This Action can be used in the following way (as a step in the Workflow):
 
 ```yaml
-- uses: KamilRybacki/diffcache@v[version]
+- uses: KamilRybacki/diff-cache@v[version]
     with:
       # REQUIRED: Regex to use to match the files to include in the cache
       include: '.*.py'
