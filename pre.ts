@@ -3,7 +3,7 @@ import ActiveWorkflowFileReader from './src/workflow.js';
 
 const CACHE_SECRET_REGEXP = /cache_secret.*$/;
 
-export const prerun = async () => {
+export const run = async () => {
   if (!core.getInput('cache_secret', {required: true})) {
     core.setFailed('No secret for cache provided.');
   }
@@ -27,3 +27,5 @@ const findSecretName = (content: string) => {
           .pop()
           ?.split('}}')[0];
 };
+
+run();

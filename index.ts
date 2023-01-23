@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import {prerun} from './pre.js';
 import DiffCache from './src/cache.js';
 
 const run = async () => {
