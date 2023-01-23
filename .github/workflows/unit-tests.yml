@@ -39,7 +39,6 @@ jobs:
         echo "MANUAL_POST=true" >> $GITHUB_ENV
     - name: Manually run the pre.js step
       uses: actions/github-script@v6
-      id: pre-js
       with:
         script: |
           import { run as pre } from './dist/pre.js';
@@ -63,7 +62,6 @@ jobs:
         echo "CACHE_SECRET=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
     - name: Manually run the post.js step
       uses: actions/github-script@v6
-      id: pre-js
       with:
         script: |
           import { run as post } from './dist/post.js';
