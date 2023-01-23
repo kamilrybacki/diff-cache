@@ -13,7 +13,7 @@ describe("Test workflow file reading", () => {
   let authenticatedOctokit: InstanceType<typeof GitHub>;
   let workflowFileHandler: ActiveWorkflowFileReader;
 
-  const expectedWorkflowFilePath = ".github/workflows/unit-tests.yml";
+  const expectedWorkflowFilePath = ".github/workflows/tests.yml";
 
   beforeAll(async () => {
     expect(testsToken).toBeDefined();
