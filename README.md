@@ -35,6 +35,8 @@ Results of this check are stored within some sort of artifact or other storage,
 persistent between CI/CD Workflow runs. This information is used by the subsequent Workflow steps
 to check the necessary files. If all files are checked, then the cache is cleared.
 
+![Visual representation of Diff Cache Workflow](https://github.com/KamilRybacki/diff-cache/blob/media/use_case_diagram.png)
+
 ## Usage
 
 This Action can be used in the following way (as a step in the Workflow):
