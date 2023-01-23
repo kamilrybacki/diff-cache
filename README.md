@@ -108,3 +108,14 @@ compressed by use od `lz-string` library (namely the methods from `LZString` int
 and then it is properly encrypted using the `libsodium-wrappers` library and repo public key.
 
 This allows for the data to be stored in a small amount of space, and also to be encrypted (as needed by the Github Secrets API).
+
+## The cold hard truth
+
+This Action is not perfect. The problems that it solves are not the most important ones,
+and the solutions that it provides may be not the best ones.
+
+One of the motivations for me was to learn how to write a Github Action and navigate the Github API.
+I also wanted to learn how to use the `libsodium-wrappers` library, which I used for the encryption of the data.
+There may be some cool lessons to learn by studying the `DiffCache` and `ActiveWorkflowFileReader` classes.
+
+If You have idead for improvements, feel free to open an issue or a PR. I will be happy to discuss it with You.
