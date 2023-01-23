@@ -24,12 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Find Markdown files
-      run: echo "MARKDOWN_FILES=$(find . -name '*.md' -not -path './node_modules/*' -not -path './.github/*')" >> $GITHUB_ENV
-    - name: Lint Markdown files
-      uses: avto-dev/markdown-lint@v1
+    - name: Lint changelog file
+      uses: docker://avtodev/markdown-lint:v1
       with:
-        args: ${{ env.MARKDOWN_FILES }}
+        config: '/github/workspace/.github/configs/markdown-lint.yml'
+        args: './CHANGELOG.md ./README.md LICENSE'
 
   lint-source:
     runs-on: ubuntu-latest
@@ -73,7 +72,7 @@ jobs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-        config-file: ./.github/codeql/codeql-config.yml
+        config-file: ./.github/configs/codeql-config.yml
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
     - name: Perform CodeQL Analysis
