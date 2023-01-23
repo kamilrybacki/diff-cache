@@ -1,4 +1,4 @@
-name: "Unit tests"
+name: "Functionality tests"
 
 on:
   push:
@@ -108,7 +108,7 @@ jobs:
       id: cache-after-action-tests
       with:
         script: |
-          import LZString from 'lz-string';
+          const LZString = require('lz-string');
 
           const cache = process.env.DIFF_CACHE;
           const cacheDecoded = LZString.decompress(cache);
