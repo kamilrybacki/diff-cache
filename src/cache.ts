@@ -49,7 +49,7 @@ class DiffCache {
 
   private static initialize = async function (token: string): Promise<DiffCache> {
     if (!process.env.CACHE_SECRET_NAME) {
-      throw new Error('Cache secret name was not defined. Check the preprataion step defined in pre.ts script.');
+      throw new Error('Cache secret name was not defined. Check the preparation step defined in pre.ts script.');
     }
     const authenticatedAPI = getOctokit(token)
     core.info('Successfully authenticated with GitHub API');

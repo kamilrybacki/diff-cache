@@ -1,0 +1,126 @@
+name: "Functionality tests"
+
+on:
+  push:
+
+concurrency:
+  group: ${{ github.head_ref }}-tests
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: npm-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-
+    - run: npm ci --ignore-scripts
+    - run: npm run build
+    - name: Setup token for tests
+      run:
+        echo "TESTS_TOKEN=$(echo ${{ secrets.DIFF_CACHE_TOKEN }})" >> $GITHUB_ENV
+    - name: Run tests
+      run: npm run test
+
+  action-test:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: npm-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-
+    - run: npm ci --ignore-scripts
+    - run: npm run build
+    - name: Setup token for tests
+      run:
+        echo "TESTS_TOKEN=$(echo ${{ secrets.DIFF_CACHE_TOKEN }})" >> $GITHUB_ENV
+    - name: Enable manual execution of pre and post steps
+      run: |
+        echo "MANUAL_PRE=true" >> $GITHUB_ENV
+    - run: echo "$(ls ./dist)"
+    - name: Manually run the pre.js step
+      uses: actions/github-script@v6
+      with:
+        script: await import('${{ github.workspace }}/dist/pre/index.js')
+    - name: Prepare cache for Action test
+      id: diff-cache
+      uses: ./
+      with:
+        include: '.*'
+        cache_secret: ${{ secrets.DIFF_CACHE }}
+        token: ${{ secrets.DIFF_CACHE_TOKEN }}
+    - name: Check if the action found any files
+      run: |
+        if [ -z "${{ steps.diff-cache.outputs.files }}" ]; then
+          echo "No files found"
+          exit 1
+        fi
+        echo "Files found: ${{ steps.diff-cache.outputs.files }}"
+    - name: Pass the cache manually through secret for debugging
+      run: echo "CACHE_SECRET=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
+    - name: Pass the needed inputs as env vars
+      run: |
+        echo "TESTS_INCLUDE=.*" >> $GITHUB_ENV
+        echo "TESTS_EXCLUDE=''" >> $GITHUB_ENV
+
+  post-action-tests:
+    runs-on: ubuntu-latest
+    needs: action-test
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    - run: npm ci --ignore-scripts
+    - name: Pass the cache to GitHub Envs
+      run:
+        echo "DIFF_CACHE=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
+    - name: Manually read the cache from secret
+      uses: actions/github-script@v6
+      id: cache-after-action-tests
+      with:
+        script: |
+          const LZString = require('lz-string');
+
+          const cache = process.env.DIFF_CACHE;
+          const cacheDecoded = LZString.decompress(cache);
+          const cacheParsed = JSON.parse(cacheDecoded);
+          return cacheParsed['.*&&'];
+        result-encoding: string
+    - name: Check if cache was emptied
+      run: |
+        if [ -z "${{ steps.cache-after-action-tests.outputs.result }}" ]; then
+          echo "Cache was emptied"
+          exit 0
+        fi
+        echo "Cache was not emptied"
+        exit 1
