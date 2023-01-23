@@ -20,7 +20,6 @@ const run = async () => {
     .then(async (workflow: ActiveWorkflowFileReader) => {
       const workflowData = await workflow.data;
       const line = findSecretName(workflowData.content);
-      core.info(`Found secret name: ${JSON.stringify(line)}`);
       core.exportVariable('CACHE_SECRET_NAME', line);
     }
   );
