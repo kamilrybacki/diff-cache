@@ -56,8 +56,7 @@ jobs:
         fi
         echo "Files found: ${{ steps.diff-cache.outputs.files }}"
     - name: Pass the cache manually through secret for debugging
-      run: |
-        echo "CACHE_SECRET=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
+      run: echo "CACHE_SECRET=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
     - name: Pass the needed inputs as env vars
       run: |
         echo "TESTS_INCLUDE=.*" >> $GITHUB_ENV
