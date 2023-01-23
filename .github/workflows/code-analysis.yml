@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Find Markdown files
-      run: echo "MARKDOWN_FILES=$(find . -name '*.md' -not -path './node_modules/*' -not -path './.github/*')" >> $GITHUB_ENV
+      run: echo "MARKDOWN_FILES=$(find . -name '*.md' -not -path './node_modules/*' -not -path './.github/*' | tr '\n' ' ')" >> $GITHUB_ENV
     - name: Lint Markdown files
       uses: avto-dev/markdown-lint@v1
       with:
