@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: styfle/cancel-workflow-action@0.9.1
         with:
-          workflow_id: 'Functionality tests'
+          workflow_id: 'Unit tests'
           access_token: ${{ secrets.DIFF_CACHE_TOKEN }}
 
   lint-markdown:
