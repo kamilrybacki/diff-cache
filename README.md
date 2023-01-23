@@ -54,6 +54,23 @@ This Action can be used in the following way (as a step in the Workflow):
       exclude: '.*/dont/check/this/.*'
 ```
 
+After running this Action, the list of the files to check is available through the `files` output e.g.:
+
+```yaml
+- name: Get changed Python files
+  id: python-files-search
+  uses: KamilRybacki/diff-cache@v[version]
+    with:
+      include: '.*.py'
+      cache_secret: ${{ secrets.CACHE_SECRET }}
+      token: ${{ secrets.TOKEN }}
+- name: Some step that uses the result of the Diff Cache action
+  env:
+    FILES_TO_CHECK: ${{ python-files-search.output.files }}
+  run: mypy ${FILES_TO_CHECK} # Or whatever command really
+```
+This output contains a whitespace delimtied list of files that were modified during current commit + files stored in the cache.
+
 ### Note
 
 The `token` needs to have the necessary scopes for reading Workflow info and managing repo Secrets.
