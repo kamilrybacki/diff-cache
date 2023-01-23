@@ -66,7 +66,7 @@ After running this Action, the list of the files to check is available through t
       token: ${{ secrets.TOKEN }}
 - name: Some step that uses the result of the Diff Cache action
   env:
-    FILES_TO_CHECK: ${{ python-files-search.output.files }}
+    FILES_TO_CHECK: ${{ python-files-search.outputs.files }}
   run: mypy ${FILES_TO_CHECK} # Or whatever command really
 ```
 This output contains a whitespace delimtied list of files that were modified during current commit + files stored in the cache.
