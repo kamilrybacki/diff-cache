@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "JavaScript Action Template",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "lint": "eslint .",
     "build": "ncc build pre.ts -o dist/pre --source-map && ncc build index.ts -o dist/ --source-map --license licenses.txt && ncc build post.ts -o dist/post --source-map",

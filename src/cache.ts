@@ -7,11 +7,6 @@ import { GitHub } from '@actions/github/lib/utils';
 import { CommitComparisonResponse } from './types.js';
 import { OctokitResponse } from '@octokit/types';
 
-import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 class DiffCache {
   authenticatedAPI: InstanceType<typeof GitHub>;
   repoPublicKey: string;
