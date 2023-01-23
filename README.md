@@ -47,7 +47,7 @@ This Action can be used in the following way (as a step in the Workflow):
       # REQUIRED: Secret containing the cache. Doesn't have to be prepared beforehand, it will be created if it doesn't exist (see Note below).
       cache_secret: ${{ secrets.CACHE_SECRET }}
       # REQUIRED: Github token to use for the API calls. It is required to be able to create the cache secret and to be able to update it (see Note below).
-      token: $${{ secrets.TOKEN }}
+      token: ${{ secrets.TOKEN }}
       # OPTIONAL: Regex to use to match the files to exclude from the cache check.
       exclude: '.*/dont/check/this/.*'
 ```
@@ -59,7 +59,10 @@ The most secure solution is to use a fine-grained token, with only the necessary
 
 #### **IMPORTANT**
 
-The secret MUST be created by the user **ONCE** and then it is updated by the Action **automatically**.
+The secret MUST be created by the user **ONCE** (before using the Action for the 1st time) and then it is updated by the Action **automatically**.
+Sadly, there is no way to create a secret from within the Workflow file **if its not present**, so it has to be created beforehand
+(at least from the side of my implementation, the user can do some magic with API calls and finding the secret etc.).
+In other words, **CREATE AND FORGET IT** i.e. don't touch it.
 This means that the secret should not be used for anything else. If there is anything present within it,
 then the Action will **overwrite its contents**.
 
@@ -74,3 +77,32 @@ This may sound confusing but the flow of this Action is as follows:
 
 Hence, **use one secret per Workflow** (if You plan to trigger this action multiple times in the same Workflow).
 If this is not followed, the first occurrence of the `cache_secret` input present in the Workflow file will be used.
+In future, an additional guard will be maybe added to halt the execution of the Action if multiple secrets are found.
+
+## How the staged files data is stored?
+
+The cache is structured in the following format:
+
+```json
+{
+  "[TAG CREATED BY THE ACTION]#1": "file1 file2 file3 ...",
+  "[TAG CREATED BY THE ACTION]#2": "file1 file2 file3 ...",
+  "[TAG CREATED BY THE ACTION]#3": "file1 file2 file3 ..."
+}
+```
+
+where the `[TAG CREATED BY THE ACTION]` is the tag created by the Action using the combination of `include` and `exclude` inputs:
+
+```js
+const tag = `${include}&&${exclude}`;
+```
+
+This structure allows one secret per Workflow to be used with multiple `include` and `exclude` combinations,
+which may correspond to multiple checks within the Workflow, based on the extensions, locations and so on of the modified files.
+All can be done by the correct set up of the `include` and `exclude` regular expressions.
+
+Before saving this data to the secret, it is stringified using `JSON.stringify`,
+compressed by use od `lz-string` library (namely the methods from `LZString` interface)
+and then it is properly encrypted using the `libsodium-wrappers` library and repo public key.
+
+This allows for the data to be stored in a small amount of space, and also to be encrypted (as needed by the Github Secrets API).
