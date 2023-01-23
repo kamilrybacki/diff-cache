@@ -1,4 +1,4 @@
-import core from '@actions/core';
+import * as core from '@actions/core';
 import ActiveWorkflowFileReader from './src/workflow.js';
 
 const CACHE_SECRET_REGEXP = /cache_secret.*$/;
@@ -20,6 +20,7 @@ const run = async () => {
     .then(async (workflow: ActiveWorkflowFileReader) => {
       const workflowData = await workflow.data;
       const line = findSecretName(workflowData.content);
+      core.info(`Found secret name: ${JSON.stringify(line)}`);
       core.exportVariable('CACHE_SECRET_NAME', line);
     }
   );
