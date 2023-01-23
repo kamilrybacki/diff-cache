@@ -98,6 +98,8 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: 16.x
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
     - name: Install "lz-string" library via NPM
       run: npm install lz-string
     - name: Pass the cache to GitHub Envs
