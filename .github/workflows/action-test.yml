@@ -1,7 +1,6 @@
 name: "Action test"
 
 on:
-  push:
   workflow_run:
     workflows: ["Unit tests"]
     types:
