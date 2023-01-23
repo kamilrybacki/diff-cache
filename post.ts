@@ -2,19 +2,9 @@ import * as core from '@actions/core';
 import DiffCache from './src/cache.js';
 
 export const run = async () => {
-  let include: string;
-  let exclude: string;
-  let token: string;
-
-  if (!process.env.MANUAL_POST) {
-    include = core.getInput('include', {required: true});
-    exclude = core.getInput('exclude');
-    token = core.getInput('token', {required: true});
-  } else {
-    include = process.env.TESTS_INCLUDE as string;
-    exclude = process.env.TESTS_EXCLUDE as string;
-    token = process.env.TESTS_TOKEN as string;
-  }
+  const include = core.getInput('include', {required: true});
+  const exclude = core.getInput('exclude');
+  const token = core.getInput('token', {required: true});
 
   if (!token) {
     core.setFailed('No token provided.');
@@ -22,10 +12,6 @@ export const run = async () => {
   if (!include) {
     core.setFailed('No include provided.');
   }
-  if (!exclude) {
-    exclude = '';
-  }
-
   core.info(`Using regex: ${include}`);
   if (exclude) core.info(`Using ignore: ${exclude}`);
 

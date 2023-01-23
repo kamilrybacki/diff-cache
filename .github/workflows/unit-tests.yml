@@ -36,7 +36,6 @@ jobs:
     - name: Enable manual execution of pre and post steps
       run: |
         echo "MANUAL_PRE=true" >> $GITHUB_ENV
-        echo "MANUAL_POST=true" >> $GITHUB_ENV
     - run: echo "$(ls ./dist)"
     - name: Manually run the pre.js step
       uses: actions/github-script@v6
@@ -56,3 +55,10 @@ jobs:
           exit 1
         fi
         echo "Files found: ${{ steps.diff-cache.outputs.files }}"
+    - name: Pass the cache manually through secret for debugging
+      run: |
+        echo "CACHE_SECRET=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
+    - name: Pass the needed inputs as env vars
+      run: |
+        echo "TESTS_INCLUDE=.*" >> $GITHUB_ENV
+        echo "TESTS_EXCLUDE=''" >> $GITHUB_ENV
