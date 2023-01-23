@@ -41,9 +41,7 @@ jobs:
     - name: Manually run the pre.js step
       uses: actions/github-script@v6
       with:
-        script: |
-          const pre = require('./dist/pre.js');
-          await pre();
+        script: await import('${{ github.workspace }}/dist/pre.js')
     - name: Prepare cache for Action test
       id: diff-cache
       uses: ./
@@ -64,6 +62,4 @@ jobs:
     - name: Manually run the post.js step
       uses: actions/github-script@v6
       with:
-        script: |
-          const post = require('./dist/post.js');
-          await post();
+        script: await import('${{ github.workspace }}/dist/post.js')
