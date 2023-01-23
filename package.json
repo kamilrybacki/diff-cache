@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "eslint .",
     "build": "tsc",
-    "prepare": "ncc build index.ts pre.ts post.ts -o dist --source-map --license licenses.txt",
+    "prepare": "ncc build index.ts -o dist --source-map --license licenses.txt",
     "test": "jest",
     "all": "npm run lint && npm run prepare && npm run test"
   },
