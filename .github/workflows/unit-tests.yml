@@ -37,7 +37,7 @@ jobs:
       run: |
         echo "MANUAL_PRE=true" >> $GITHUB_ENV
         echo "MANUAL_POST=true" >> $GITHUB_ENV
-    - run: echo "ls ./dist"
+    - run: echo "$(ls ./dist)"
     - name: Manually run the pre.js step
       uses: actions/github-script@v6
       with:
