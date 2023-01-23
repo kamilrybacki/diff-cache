@@ -65,7 +65,7 @@ jobs:
     - name: Manually run the pre.js step
       uses: actions/github-script@v6
       with:
-        script: await import('${{ github.workspace }}/dist/pre.js')
+        script: await import('${{ github.workspace }}/dist/pre/index.js')
     - name: Prepare cache for Action test
       id: diff-cache
       uses: ./

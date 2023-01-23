@@ -22,7 +22,7 @@ outputs:
     description: 'List of changed files kept as GH Workflow output for convenience.'
 runs:
   using: 'node16'
-  pre: 'dist/pre.js'
+  pre: 'dist/pre/index.js'
   main: 'dist/index.js'
-  post: 'dist/post.js'
+  post: 'dist/post/index.js'
   post-if: success()
