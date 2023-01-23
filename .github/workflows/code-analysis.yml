@@ -30,7 +30,7 @@ jobs:
       uses: avto-dev/markdown-lint@v1
       with:
         args: ${{ env.MARKDOWN_FILES }}
-        config: '/markdown-lint.yml'
+        config: './.github/configs/.markdown-lint.yml'
 
   lint-source:
     runs-on: ubuntu-latest
@@ -74,7 +74,7 @@ jobs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-        config-file: ./.github/codeql/codeql-config.yml
+        config-file: ./.github/configs/codeql-config.yml
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
     - name: Perform CodeQL Analysis
