@@ -27,7 +27,7 @@ jobs:
     - name: Lint changelog file
       uses: docker://avtodev/markdown-lint:v1
       with:
-        config: '/.github/configs/markdown-lint.yml'
+        config: '/github/workspace/.github/configs/markdown-lint.yml'
         args: './CHANGELOG.md ./README.md LICENSE'
 
   lint-source:
