@@ -44,12 +44,14 @@ This Action can be used in the following way (as a step in the Workflow):
 ```yaml
 - uses: KamilRybacki/diff-cache@v[version]
     with:
-      # REQUIRED: Regex to use to match the files to include in the cache
-      include: '.*.py'
-      # REQUIRED: Secret containing the cache. Has to be prepared beforehand
+      # REQUIRED: Secret containing the cache. Doesn't have to be prepared beforehand, it will be created if it doesn't exist (see Note below).
       cache_secret: ${{ secrets.CACHE_SECRET }}
       # REQUIRED: Github token to use for the API calls. It is required to be able to create the cache secret and to be able to update it (see Note below).
       token: ${{ secrets.TOKEN }}
+      # OPTIONAL: Set to true if You want to provide manually escaped regexps i.e. turn off manual escape of special characters (see Note below).
+      disable_escape: false  # That's the default value
+      # OPTIONAL: Regex to use to match the files to include in the cache
+      include: '.py'
       # OPTIONAL: Regex to use to match the files to exclude from the cache check.
       exclude: '.*/dont/check/this/.*'
 ```
@@ -61,7 +63,7 @@ After running this Action, the list of the files to check is available through t
   id: python-files-search
   uses: KamilRybacki/diff-cache@v[version]
     with:
-      include: '.*.py'
+      include: '.py'
       cache_secret: ${{ secrets.CACHE_SECRET }}
       token: ${{ secrets.TOKEN }}
 - name: Some step that uses the result of the Diff Cache action
@@ -69,12 +71,27 @@ After running this Action, the list of the files to check is available through t
     FILES_TO_CHECK: ${{ python-files-search.outputs.files }}
   run: mypy ${FILES_TO_CHECK} # Or whatever command really
 ```
+
 This output contains a whitespace delimtied list of files that were modified during current commit + files stored in the cache.
+If no `include` or `exclude` regexps are provided, then all files registered by `git diff command` are stored in the cache.
 
 ### Note
 
 The `token` needs to have the necessary scopes for reading Workflow info and managing repo Secrets.
 The most secure solution is to use a fine-grained token, with only the necessary scopes. Check the [Github documentation](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#permissions-for-the-github_token) for more information about enabling the necessary scopes.
+
+The `disable_escape` input is used to disable the automatic escaping of special characters in the provided regexps.
+By default, the Action escapes the special characters in the regexps, so that the user does not have to worry about it
+and provide file extensions in a more readable way e.g. `.py` instead of `\.*\.py`.
+
+If set to `true`, the user is responsible for escaping the special characters in the regexps, if they are present,
+such as aforementioned `.` or `*`. This is useful if the user wants to provide the regexps in a more readable way
+or do some other regular expressions magic with them. This is also useful if the user wants to provide the regexps
+that target specific files or paths, not just file extensions.
+
+You can use the [regex101](https://regex101.com/) website to test your regexps and then escape the special characters
+as seen in the official MDN documentation for [RegExp escaping](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping).
+Nevertheless, use this feature with caution, as it is a purely no-handlebars zone.
 
 #### **IMPORTANT**
 
@@ -116,7 +133,24 @@ where the `[TAG CREATED BY THE ACTION]` is the tag created by the Action using t
 const tag = `${include}&&${exclude}`;
 ```
 
-This structure allows one secret per Workflow to be used with multiple `include` and `exclude` combinations,
+If no `include` or `exclude` inputs are provided, then the tag is set to `all`:
+
+```js
+const tag = 'all';
+```
+
+and the cache is structured in the following format:
+
+```json
+{
+  "all": "file1 file2 file3 ...",  // All files that were modified during the current + last unsuccessful commit
+  "[TAG CREATED BY THE ACTION]#1": "file1 file2 file3 ...",
+  "[TAG CREATED BY THE ACTION]#2": "file1 file2 file3 ...",
+  "[TAG CREATED BY THE ACTION]#3": "file1 file2 file3 ..."
+}
+```
+
+This structure allows one secret per Workflow to be used with multiple `include` and `exclude` combinations (or no combinations at all i.e. tag `all`),
 which may correspond to multiple checks within the Workflow, based on the extensions, locations and so on of the modified files.
 All can be done by the correct set up of the `include` and `exclude` regular expressions.
 

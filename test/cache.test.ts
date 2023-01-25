@@ -83,11 +83,32 @@ describe("Test caching mechanisms", () => {
 
     test("Test the Git diff function", async () => {
       const changedFiles = await checkWhichFilesHaveChangedAtThisCommit();
-      const includeRegexp = changedFiles.join('|');
-      const diffFromDiffCache = await authenticatedDiffCache.diff(includeRegexp, '');
+      const diffFromDiffCache = await authenticatedDiffCache.diff('', '');
       expect(diffFromDiffCache).toBeDefined();
       expect(typeof diffFromDiffCache).toBe('string');
       expect(diffFromDiffCache).toBe(changedFiles.join(' '));
+    });
+
+    test("Check if filter function works", async () => {
+      const testFiles = 'index.ts post.ts pre.ts package.json package-lock.json babel.config.json tsconfig.json .eslintrc.json'
+        .split(' ').map((file) => { return {filename: file} })
+
+      const typescriptIncludeRegex = '.ts';
+      const jsonIncludeRegex = '.json';
+      const jsonExcludeRegex = '-lock.json';
+
+      const foundTypescriptFiles = authenticatedDiffCache.filterWithRegex(testFiles, typescriptIncludeRegex, '');
+      const expectedTypescriptFiles = 'index.ts post.ts pre.ts';
+
+      const foundJsonFiles = authenticatedDiffCache.filterWithRegex(testFiles, jsonIncludeRegex, '');
+      const expectedJsonFiles = 'package.json package-lock.json babel.config.json tsconfig.json .eslintrc.json';
+
+      const foundJsonFilesWithoutPackageLock = authenticatedDiffCache.filterWithRegex(testFiles, jsonIncludeRegex, jsonExcludeRegex);
+      const expectedJsonFilesWithoutPackageLock = 'package.json babel.config.json tsconfig.json .eslintrc.json';
+
+      expect(foundTypescriptFiles.split(' ')).toStrictEqual(expectedTypescriptFiles.split(' '));
+      expect(foundJsonFiles.split(' ')).toStrictEqual(expectedJsonFiles.split(' '));
+      expect(foundJsonFilesWithoutPackageLock.split(' ')).toStrictEqual(expectedJsonFilesWithoutPackageLock.split(' '));
     });
 
     test("Check if lazy loading cache works", async () => {

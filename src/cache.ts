@@ -16,6 +16,7 @@ class DiffCache {
   encryptor: typeof Sodium | undefined = undefined;
   cache: { [key: string]: string } | undefined = undefined;
   debug: boolean;
+  disable_escape: boolean;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
@@ -33,6 +34,7 @@ class DiffCache {
     this.target = target;
     this.encryptor = encryptor;
     this.debug = false;
+    this.disable_escape = core.getInput('disable_escape').toUpperCase() === 'TRUE';
   }
 
   static access = async function (token: string): Promise<DiffCache> {
@@ -90,17 +92,6 @@ class DiffCache {
     this.debug = debug;
   };
 
-  validateFiles = (files: string[], include: string, exclude: string): string[] => {
-    core.info(`Validating files: ${files} against pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`)
-    const regex = new RegExp(include);
-    const ignore = new RegExp(exclude);
-    return files.reduce((incorrect_files: string[], file: string) => {
-      if (!file.match(regex)) incorrect_files.push(file);
-      if (exclude && file.match(ignore)) incorrect_files.push(file);
-      return incorrect_files
-    }, []);
-  };
-
   diff = async function (this: DiffCache, include: string, exclude: string): Promise<string> {
     core.info(`Checking changed files using pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`);
     return await this.authenticatedAPI.rest.repos.compareCommitsWithBasehead({
@@ -124,14 +115,39 @@ class DiffCache {
         if (!data.files || data.files?.length === 0) {
           throw new Error('No files changed');
         }
-        const changedFiles = data.files
-          ?.filter((file: {filename: string}) => file.filename.match(new RegExp(include)))
-          .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(exclude)))
-          .map((file: {filename: string}) => file.filename)
-          .join(' ');
+        const changedFiles = this.filterWithRegex(data.files, include, exclude);
         core.info(`Changed files: ${changedFiles}`);
         return changedFiles as string;
       })
+  };
+
+  escapeRegexString = function (this: DiffCache, source: string): string {
+    return this.disable_escape ? source.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') : source;
+  };
+
+  filterWithRegex = function (this: DiffCache, files: { filename: string }[], include: string, exclude: string): string {
+    return files
+      .map((file: {filename: string}) => file.filename)
+      .filter((filename: string) => {
+        const escapedInclude = this.escapeRegexString(include);
+        return include ? filename.match(new RegExp(escapedInclude, 'g')) : true;
+      })
+      .filter((filename: string) => {
+        const escapedExclude = this.escapeRegexString(exclude);
+        return exclude ? (!exclude || !filename.match(new RegExp(escapedExclude, 'g'))) : true;
+      })
+      .join(' ');
+  };
+
+  validateFiles = function (this: DiffCache, files: string[], include: string, exclude: string): string[] {
+    core.info(`Validating files: ${files} against pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`)
+    return files.reduce((incorrect_files: string[], file: string) => {
+      const escapedInclude = this.escapeRegexString(include);
+      const escapedExclude = this.escapeRegexString(exclude);
+      if (!file.match(new RegExp(escapedInclude))) incorrect_files.push(file);
+      if (exclude && file.match(new RegExp(escapedExclude))) incorrect_files.push(file);
+      return incorrect_files
+    }, []);
   };
 
   save = async function (this: DiffCache, tag: string, value: string): Promise<void> {

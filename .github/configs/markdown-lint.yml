@@ -18,3 +18,4 @@ MD040: false                  # Allow ``` blocks in md files with no language sp
 # Rules by tags #
 #################
 blank_lines: false  # Error on blank lines
+

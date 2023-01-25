@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## v2
+
+### Added
+
+- Way to use escaped or unescaped regular expressions.
+- Ability to omit the `include` and `exclude` inputs and cache `all` changed files.
+- Automatic escaping of special characters in the regular expressions.
+- Info about regexp escaping in the project ReadMe.
+- Tests for the regexp escaping mechanism.
+
+### Changed
+
+- Set regular expressions to optional Action inputs.
+- Simplified unit test for `DiffCache.diff` method.
+
+### Removed
+
+- Unnecessary steps in CI/CD workflows.
+
+## v1
 
 ### Added
 
