@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Lint changelog file
+    - name: Lint Markdown files
       uses: docker://avtodev/markdown-lint:v1
       with:
         config: '/github/workspace/.github/configs/markdown-lint.yml'

@@ -95,6 +95,8 @@ describe("Test caching mechanisms", () => {
       const testFiles = await readdir(process.env.GITHUB_WORKSPACE as string)
         .then((files) => Object.assign({}, files.map((file) => ({filename: file}))));
 
+      console.log(testFiles)
+
       const typescriptIncludeRegex = '.*\\.ts$';
       const jsonIncludeRegex = '.*\\.json$';
       const jsonExcludeRegex = '.*lock\\.json$';
