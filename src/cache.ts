@@ -131,9 +131,11 @@ class DiffCache {
   };
 
   filterWithRegex = (files: { filename: string }[], include: string, exclude: string): string => {
+    const escapedInclude = include.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const escapedExclude = exclude.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     return files
-      ?.filter((file: {filename: string}) => file.filename.match(new RegExp(include)))
-      .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(exclude)))
+      ?.filter((file: {filename: string}) => file.filename.match(new RegExp(escapedInclude, 'g')))
+      .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(escapedExclude, 'g')))
       .map((file: {filename: string}) => file.filename)
       .join(' ');
   };
