@@ -83,8 +83,7 @@ describe("Test caching mechanisms", () => {
 
     test("Test the Git diff function", async () => {
       const changedFiles = await checkWhichFilesHaveChangedAtThisCommit();
-      authenticatedDiffCache.disable_escape = true;
-      const diffFromDiffCache = await authenticatedDiffCache.diff('.*', '');
+      const diffFromDiffCache = await authenticatedDiffCache.diff('', '');
       expect(diffFromDiffCache).toBeDefined();
       expect(typeof diffFromDiffCache).toBe('string');
       expect(diffFromDiffCache).toBe(changedFiles.join(' '));
