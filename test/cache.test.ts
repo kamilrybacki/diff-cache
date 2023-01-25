@@ -97,7 +97,7 @@ describe("Test caching mechanisms", () => {
 
       const typescriptIncludeRegex = '.ts';
       const jsonIncludeRegex = '.json';
-      const jsonExcludeRegex = '.lock.json';
+      const jsonExcludeRegex = '-lock.json';
 
       const foundTypescriptFiles = authenticatedDiffCache.filterWithRegex(testFiles, typescriptIncludeRegex, '');
       const expectedTypescriptFiles = 'index.ts post.ts pre.ts';
