@@ -95,9 +95,9 @@ describe("Test caching mechanisms", () => {
       const testFiles = 'index.ts post.ts pre.ts package.json package-lock.json babel.config.json tsconfig.json .eslintrc.json'
         .split(' ').map((file) => { return {filename: file} })
 
-      const typescriptIncludeRegex = '.*\\.ts$';
-      const jsonIncludeRegex = '.*\\.json$';
-      const jsonExcludeRegex = '.*lock\\.json$';
+      const typescriptIncludeRegex = '.ts';
+      const jsonIncludeRegex = '.json';
+      const jsonExcludeRegex = '.lock.json';
 
       const foundTypescriptFiles = authenticatedDiffCache.filterWithRegex(testFiles, typescriptIncludeRegex, '');
       const expectedTypescriptFiles = 'index.ts post.ts pre.ts';
