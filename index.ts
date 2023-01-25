@@ -2,13 +2,12 @@ import * as core from '@actions/core';
 import DiffCache from './src/cache.js';
 
 const run = async () => {
-  const include = core.getInput('include', {required: true});
-  core.info(`Using regex: ${include}`);
-
+  const include = core.getInput('include', {required: false});
+  if (include) core.info(`Using regex: ${include}`);
   const exclude = core.getInput('exclude');
   if (exclude) core.info(`Using ignore: ${exclude}`);
 
-  const cacheTag = `${include}&&${exclude}`;
+  const cacheTag = include ? `${include}&&${exclude}`: 'all';
 
   const token = core.getInput('token', {required: true});
   await DiffCache
