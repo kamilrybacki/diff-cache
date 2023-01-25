@@ -79,12 +79,6 @@ jobs:
           exit 1
         fi
         echo "Files found: ${{ steps.diff-cache.outputs.files }}"
-    - name: Pass the cache manually through secret for debugging
-      run: echo "CACHE_SECRET=${{ secrets.DIFF_CACHE }}" >> $GITHUB_ENV
-    - name: Pass the needed inputs as env vars
-      run: |
-        echo "TESTS_INCLUDE=.*" >> $GITHUB_ENV
-        echo "TESTS_EXCLUDE=''" >> $GITHUB_ENV
 
   post-action-tests:
     runs-on: ubuntu-latest
@@ -113,7 +107,7 @@ jobs:
           const cache = process.env.DIFF_CACHE;
           const cacheDecoded = LZString.decompress(cache);
           const cacheParsed = JSON.parse(cacheDecoded);
-          return cacheParsed['.*&&'];
+          return cacheParsed['all'];
         result-encoding: string
     - name: Check if cache was emptied
       run: |
