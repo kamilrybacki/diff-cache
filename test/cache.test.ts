@@ -108,9 +108,9 @@ describe("Test caching mechanisms", () => {
       const foundJsonFilesWithoutPackageLock = authenticatedDiffCache.filterWithRegex(testFiles, jsonIncludeRegex, jsonExcludeRegex);
       const expectedJsonFilesWithoutPackageLock = 'package.json babel.config.json tsconfig.json .eslintrc.json';
 
-      expect(foundTypescriptFiles.split('')).toBe(expectedTypescriptFiles.split(''));
-      expect(foundJsonFiles.split('')).toBe(expectedJsonFiles.split(''));
-      expect(foundJsonFilesWithoutPackageLock.split('')).toBe(expectedJsonFilesWithoutPackageLock.split(''));
+      expect(foundTypescriptFiles.split(' ')).toBe(expectedTypescriptFiles.split(' '));
+      expect(foundJsonFiles.split(' ')).toBe(expectedJsonFiles.split(' '));
+      expect(foundJsonFilesWithoutPackageLock.split(' ')).toBe(expectedJsonFilesWithoutPackageLock.split(' '));
     });
 
     test("Check if lazy loading cache works", async () => {
