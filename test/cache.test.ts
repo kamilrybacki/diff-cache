@@ -92,8 +92,8 @@ describe("Test caching mechanisms", () => {
     });
 
     test("Check if filter function works", async () => {
-      const testFilesList = await readdir(process.env.GITHUB_WORKSPACE as string)
-      const testFiles = Object.assign({}, testFilesList.map((file) => ({filename: file})));
+      const testFiles = await readdir(process.env.GITHUB_WORKSPACE as string)
+        .then((files) => Object.assign({}, files.map((file) => ({filename: file}))));
 
       const typescriptIncludeRegex = '.*\\.ts$';
       const jsonIncludeRegex = '.*\\.json$';
