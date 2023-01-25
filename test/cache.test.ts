@@ -93,6 +93,7 @@ describe("Test caching mechanisms", () => {
 
     test("Check if filter function works", async () => {
       const testFiles = 'index.ts post.ts pre.ts package.json package-lock.json babel.config.json tsconfig.json .eslintrc.json'
+        .split(' ').map((file) => { return {filename: file} })
 
       const typescriptIncludeRegex = '.*\\.ts$';
       const jsonIncludeRegex = '.*\\.json$';
