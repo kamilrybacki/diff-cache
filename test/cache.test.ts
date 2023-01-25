@@ -6,6 +6,7 @@ import {context} from "@actions/github";
 import LZString from "lz-string";
 import DiffCache from "../src/cache";
 import {CommitComparisonResponse} from "../src/types";
+import { readdir } from "fs/promises";
 
 type EmojiResponse = OctokitResponse<{[key: string]: string}> | undefined
 
@@ -88,6 +89,28 @@ describe("Test caching mechanisms", () => {
       expect(diffFromDiffCache).toBeDefined();
       expect(typeof diffFromDiffCache).toBe('string');
       expect(diffFromDiffCache).toBe(changedFiles.join(' '));
+    });
+
+    test("Check if filter function works", async () => {
+      const testFilesList = await readdir(process.env.GITHUB_WORKSPACE as string)
+      const testFiles = Object.assign({}, testFilesList.map((file) => ({filename: file})));
+
+      const typescriptIncludeRegex = '.*\\.ts$';
+      const jsonIncludeRegex = '.*\\.json$';
+      const jsonExcludeRegex = '.*lock\\.json$';
+
+      const foundTypescriptFiles = authenticatedDiffCache.filterWithRegex(testFiles, typescriptIncludeRegex, '');
+      const expectedTypescriptFiles = 'index.ts post.ts pre.ts';
+
+      const foundJsonFiles = authenticatedDiffCache.filterWithRegex(testFiles, jsonIncludeRegex, '');
+      const expectedJsonFiles = 'package.json package-lock.json babel.config.json tsconfig.json .eslintrc.json';
+
+      const foundJsonFilesWithoutPackageLock = authenticatedDiffCache.filterWithRegex(testFiles, jsonIncludeRegex, jsonExcludeRegex);
+      const expectedJsonFilesWithoutPackageLock = 'package.json babel.config.json tsconfig.json .eslintrc.json';
+
+      expect(foundTypescriptFiles.split('')).toBe(expectedTypescriptFiles.split(''));
+      expect(foundJsonFiles.split('')).toBe(expectedJsonFiles.split(''));
+      expect(foundJsonFilesWithoutPackageLock.split('')).toBe(expectedJsonFilesWithoutPackageLock.split(''));
     });
 
     test("Check if lazy loading cache works", async () => {

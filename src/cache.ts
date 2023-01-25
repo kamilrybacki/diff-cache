@@ -124,14 +124,18 @@ class DiffCache {
         if (!data.files || data.files?.length === 0) {
           throw new Error('No files changed');
         }
-        const changedFiles = data.files
-          ?.filter((file: {filename: string}) => file.filename.match(new RegExp(include)))
-          .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(exclude)))
-          .map((file: {filename: string}) => file.filename)
-          .join(' ');
+        const changedFiles = this.filterWithRegex(data.files, include, exclude);
         core.info(`Changed files: ${changedFiles}`);
         return changedFiles as string;
       })
+  };
+
+  filterWithRegex = (files: { filename: string }[], include: string, exclude: string): string => {
+    return files
+      ?.filter((file: {filename: string}) => file.filename.match(new RegExp(include)))
+      .filter((file: {filename: string}) => !exclude || !file.filename.match(new RegExp(exclude)))
+      .map((file: {filename: string}) => file.filename)
+      .join(' ');
   };
 
   save = async function (this: DiffCache, tag: string, value: string): Promise<void> {
