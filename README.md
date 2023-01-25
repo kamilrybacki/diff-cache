@@ -169,4 +169,4 @@ One of the motivations for me was to learn how to write a Github Action and navi
 I also wanted to learn how to use the `libsodium-wrappers` library, which I used for the encryption of the data.
 There may be some cool lessons to learn by studying the `DiffCache` and `ActiveWorkflowFileReader` classes.
 
-If You have idead for improvements, feel free to open an issue or a PR. I will be happy to discuss it with You.
+If You have ideas for improvements, feel free to open an issue or a PR. I will be happy to discuss it with You.
