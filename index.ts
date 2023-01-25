@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import DiffCache from './src/cache.js';
 
 const run = async () => {
-  const include = core.getInput('include', {required: false});
+  const include = core.getInput('include');
   if (include) core.info(`Using regex: ${include}`);
   const exclude = core.getInput('exclude');
   if (exclude) core.info(`Using ignore: ${exclude}`);

@@ -16,6 +16,7 @@ class DiffCache {
   encryptor: typeof Sodium | undefined = undefined;
   cache: { [key: string]: string } | undefined = undefined;
   debug: boolean;
+  disable_escape: boolean;
   private static __instance: DiffCache | undefined = undefined;
 
   constructor (
@@ -33,6 +34,7 @@ class DiffCache {
     this.target = target;
     this.encryptor = encryptor;
     this.debug = false;
+    this.disable_escape = core.getBooleanInput('disable_escape');
   }
 
   static access = async function (token: string): Promise<DiffCache> {
@@ -119,11 +121,11 @@ class DiffCache {
       })
   };
 
-  escapeRegexString = (string: string): string => {
-    return string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  escapeRegexString = function (this: DiffCache, source: string): string {
+    return this.disable_escape ? source.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') : source;
   };
 
-  filterWithRegex = (files: { filename: string }[], include: string, exclude: string): string => {
+  filterWithRegex = function (this: DiffCache, files: { filename: string }[], include: string, exclude: string): string {
     return files
       .map((file: {filename: string}) => file.filename)
       .filter((filename: string) => {
@@ -137,12 +139,11 @@ class DiffCache {
       .join(' ');
   };
 
-  validateFiles = (files: string[], include: string, exclude: string): string[] => {
-    const escapedInclude = include.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    const escapedExclude = exclude.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-
+  validateFiles = function (this: DiffCache, files: string[], include: string, exclude: string): string[] {
     core.info(`Validating files: ${files} against pattern ${include} ${exclude ? `and excluding according to pattern ${exclude}` : ''}`)
     return files.reduce((incorrect_files: string[], file: string) => {
+      const escapedInclude = this.escapeRegexString(include);
+      const escapedExclude = this.escapeRegexString(exclude);
       if (!file.match(new RegExp(escapedInclude))) incorrect_files.push(file);
       if (exclude && file.match(new RegExp(escapedExclude))) incorrect_files.push(file);
       return incorrect_files

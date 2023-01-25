@@ -6,7 +6,6 @@ import {context} from "@actions/github";
 import LZString from "lz-string";
 import DiffCache from "../src/cache";
 import {CommitComparisonResponse} from "../src/types";
-import { readdir } from "fs/promises";
 
 type EmojiResponse = OctokitResponse<{[key: string]: string}> | undefined
 
@@ -84,8 +83,8 @@ describe("Test caching mechanisms", () => {
 
     test("Test the Git diff function", async () => {
       const changedFiles = await checkWhichFilesHaveChangedAtThisCommit();
-      const includeRegexp = changedFiles.join('|');
-      const diffFromDiffCache = await authenticatedDiffCache.diff(includeRegexp, '');
+      authenticatedDiffCache.disable_escape = true;
+      const diffFromDiffCache = await authenticatedDiffCache.diff('.*', '');
       expect(diffFromDiffCache).toBeDefined();
       expect(typeof diffFromDiffCache).toBe('string');
       expect(diffFromDiffCache).toBe(changedFiles.join(' '));
