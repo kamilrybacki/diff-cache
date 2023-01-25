@@ -5,17 +5,17 @@ branding:
   icon: 'eye'
   color: 'green'
 inputs:
-  include:
-    description: 'Regex to use to match the files to include.'
-    required: true
   cache_secret:
     description: 'Secret containing the cache.'
     required: true
   token:
     description: 'Github token to use for the API calls.'
     required: true
+  include:
+    description: 'Regex to use to match the files to include. If left empty - all changed files will be included.'
+    required: false
   exclude:
-    description: 'Regex to use to match the files to ignore.'
+    description: 'Regex to use to match the files to ignore. If left empty - no files will be ignored.'
     required: false
 outputs:
   files:

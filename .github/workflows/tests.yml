@@ -70,7 +70,6 @@ jobs:
       id: diff-cache
       uses: ./
       with:
-        include: '.*'
         cache_secret: ${{ secrets.DIFF_CACHE }}
         token: ${{ secrets.DIFF_CACHE_TOKEN }}
     - name: Check if the action found any files
