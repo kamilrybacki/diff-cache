@@ -34,7 +34,7 @@ class DiffCache {
     this.target = target;
     this.encryptor = encryptor;
     this.debug = false;
-    this.disable_escape = core.getBooleanInput('disable_escape');
+    this.disable_escape = core.getInput('disable_escape').toUpperCase() === 'TRUE';
   }
 
   static access = async function (token: string): Promise<DiffCache> {
