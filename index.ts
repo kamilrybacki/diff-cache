@@ -24,6 +24,7 @@ const run = async () => {
             const filesToCache = [
               ...new Set(allPresentFiles.filter((file: string) => file.length))
             ];
+            core.info(`Files to cache: ${filesToCache.join(' ')}`)
             if(filesToCache.length) {
               const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);
               if (incorrect_entires.length > 0) {
