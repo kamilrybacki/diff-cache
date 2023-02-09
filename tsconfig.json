@@ -11,6 +11,6 @@
       "types": ["node"],
       "moduleResolution":"node",
     },
-    "include": ["src/**/*.ts", "pre.ts", "index.ts", "post.ts"],
+    "include": ["src/**/*.ts", "pre.ts", "index.ts", "post.ts", "dummy.ts"],
     "exclude": ["src/**/*.spec.ts"]
 }

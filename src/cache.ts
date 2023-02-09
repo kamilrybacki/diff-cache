@@ -232,6 +232,7 @@ class DiffCache {
 
   removeFilesNotPresentInCurrentCommit = async function (this: DiffCache, files: string[]): Promise<string[]> {
     const currentCommitFiles = await this.getCurrentCommitFilesList();
+    core.info(currentCommitFiles.join(' '));
     return files.filter((file: string) => currentCommitFiles.includes(file));
   };
 
