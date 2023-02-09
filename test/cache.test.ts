@@ -18,6 +18,7 @@ describe("Test caching mechanisms", () => {
     JSON.stringify({
       bob: "Bob",
       alice: "Alice",
+      mockFiles: "index.ts post.ts pre.ts package.json package-lock.json babel.config.json tsconfig.json .eslintrc.json"
     })
   );
 
@@ -137,8 +138,23 @@ describe("Test caching mechanisms", () => {
       });
     };
 
+    test("Check if files not present in tree are filtered out", async () => {
+      const testFilesCache = await authenticatedDiffCache.load('mockFiles');
+
+      // Mock the current tree API fetch function
+      authenticatedDiffCache.getCurrentCommitFilesList = async () => {
+        const mockTreeFiles = 'index.ts post.ts pre.ts package.json package-lock.json tsconfig.json';
+        await new Promise(res => setTimeout(res, 1000));
+        return mockTreeFiles.split(' ');
+      };
+
+      const filteredFiles = authenticatedDiffCache.removeFilesNotPresentInCurrentCommit(testFilesCache.split(' '));
+      const expectedFilesToBeRemoved = ['babel.config.json', '.eslintrc.json'];
+      expect(filteredFiles).not.toContain(expectedFilesToBeRemoved);
+    });
+
     test("Load, modify and save cache", async () => {
-      const bobEntry = authenticatedDiffCache.load('bob');
+      const bobEntry = await authenticatedDiffCache.load('bob');
       expect(bobEntry).toBe('Bob');
       await authenticatedDiffCache.save('bob', 'Bobby')
         .then(async () => {

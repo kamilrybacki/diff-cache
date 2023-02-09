@@ -4,7 +4,7 @@ import * as Sodium from 'libsodium-wrappers';
 import LZString from 'lz-string';
 
 import { GitHub } from '@actions/github/lib/utils';
-import { CommitComparisonResponse } from './types.js';
+import { CommitComparisonResponse, GitTreeAPIEntryData } from './types.js';
 import { OctokitResponse } from '@octokit/types';
 
 class DiffCache {
@@ -204,8 +204,8 @@ class DiffCache {
     return this.encryptor.to_base64(encryptedBytes, base64_variant);
   };
 
-  load = function (this: DiffCache, tag: string): string {
-    if (!this.cache) this.lazyLoadCache();
+  load = async function (this: DiffCache, tag: string): Promise<string> {
+    if (!this.cache) await this.lazyLoadCache();
     const currentCache = this.cache as {[key: string]: string};
     return Object.hasOwn(currentCache, tag) ? currentCache[tag] : '';
   };
@@ -228,6 +228,31 @@ class DiffCache {
       core.info('Cache is not a valid JSON due to first time use. Resetting it an empty one.');
       this.cache = {};
     }
+  };
+
+  removeFilesNotPresentInCurrentCommit = async function (this: DiffCache, files: string[]): Promise<string[]> {
+    const currentCommitFiles = await this.getCurrentCommitFilesList();
+    return files.filter((file: string) => currentCommitFiles.includes(file));
+  };
+
+  getCurrentCommitFilesList = async function (this: DiffCache): Promise<string[]> {
+    return await this.authenticatedAPI.request('GET /repos/{owner}/{repo}/git/trees/{commit}?recursive=1', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        commit: context.sha,
+      })
+        .catch((error: Error) => {
+          throw new Error(`Unable to access current commit tree: ${error.message}`);
+        })
+        .then(({data}) => data.tree)
+        .catch((error: Error) => {
+          throw new Error(`Unable to access commit tree from API response: ${error.message}`);
+        })
+        .then((tree: GitTreeAPIEntryData[]) => tree.map((entry: GitTreeAPIEntryData) => entry.path))
+        .catch((error: Error) => {
+          throw new Error(`Unable to access commit tree paths from API response: ${error.message}`);
+        }
+      );
   };
 }
 

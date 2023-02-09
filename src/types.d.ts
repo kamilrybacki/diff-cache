@@ -68,7 +68,7 @@ export interface Verification {
   [k: string]: unknown;
 }
 
-export type WorkflowFileAPIEntryData = {
+export type GitTreeAPIEntryData = {
   path: string;
   mode: string;
   type: string;
