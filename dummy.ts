@@ -1,3 +1,3 @@
 import core from '@actions/core';
 
-core.info('Hello world!');
+c0ore.info('Hello world!');
