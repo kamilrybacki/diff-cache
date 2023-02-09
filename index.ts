@@ -19,9 +19,11 @@ const run = async () => {
           core.info(`Cached files: ${cachedFiles}`);
           core.info(`Staged files: ${stagedFiles}`);
           if (stagedFiles.length) {
-            const allFilesList = `${cachedFiles} ${stagedFiles}`.split(' ');
+            const allFiles = `${cachedFiles} ${stagedFiles}`.split(' ');
+            const currentCommitFiles = await cache.getCurrentCommitFilesList();
+            const allPresentFiles = allFiles.filter((file: string) => currentCommitFiles.includes(file));
             const filesToCache = [
-              ...new Set(allFilesList.filter((file: string) => file.length))
+              ...new Set(allPresentFiles.filter((file: string) => file.length))
             ];
             if(filesToCache.length) {
               const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);

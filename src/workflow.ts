@@ -1,6 +1,6 @@
 import {getOctokit, context} from '@actions/github';
 import fetch from 'node-fetch';
-import { WorkflowFileAPIEntryData, WorkflowFile } from './types';
+import { GitTreeAPIEntryData, WorkflowFile } from './types';
 import { GitHub } from '@actions/github/lib/utils';
 
 class ActiveWorkflowFileReader {
@@ -69,7 +69,7 @@ class ActiveWorkflowFileReader {
         .then(({path}) => path);
   };
 
-  getCurrentCommitTree = async function (this: ActiveWorkflowFileReader): Promise<WorkflowFileAPIEntryData[]> {
+  getCurrentCommitTree = async function (this: ActiveWorkflowFileReader): Promise<GitTreeAPIEntryData[]> {
     return await this.api.request('GET /repos/{owner}/{repo}/git/trees/{commit}?recursive=1', {
         owner: context.repo.owner,
         repo: context.repo.repo,
@@ -84,8 +84,8 @@ class ActiveWorkflowFileReader {
         });
   };
 
-  findWorkflowFileContent = async function (this: ActiveWorkflowFileReader, tree: WorkflowFileAPIEntryData[], workflowFilePath: string): Promise<string> {
-      const workflowFileEntry = tree.find((file: WorkflowFileAPIEntryData) => file.path === workflowFilePath);
+  findWorkflowFileContent = async function (this: ActiveWorkflowFileReader, tree: GitTreeAPIEntryData[], workflowFilePath: string): Promise<string> {
+      const workflowFileEntry = tree.find((file: GitTreeAPIEntryData) => file.path === workflowFilePath);
       if (!workflowFileEntry) {
         throw new Error(`Unable to find workflow file in commit tree: ${workflowFilePath}`);
       }
