@@ -45,6 +45,7 @@ const run = async () => {
           }
         });
   });
+  core.info('DiffCache finished!')
 };
 
 run();
