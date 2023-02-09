@@ -138,14 +138,18 @@ describe("Test caching mechanisms", () => {
       });
     };
 
-    test("Check if files not present in tree are fitlered out", () => {
+    test("Check if files not present in tree are filtered out", () => {
+      const testFilesCache = authenticatedDiffCache.load('mockFiles');
+
+      // Mock the current tree API fetch function
       authenticatedDiffCache.getCurrentCommitFilesList = async () => {
         const mockTreeFiles = 'index.ts post.ts pre.ts package.json package-lock.json tsconfig.json';
         await new Promise(res => setTimeout(res, 1000));
         return mockTreeFiles.split(' ');
       };
-      const expectedFilesToBeRemoved = 'babel.config.json .eslintrc.json'.split(' ');
-      const filteredFiles = authenticatedDiffCache.removeFilesNotPresentInCurrentCommit(expectedFilesToBeRemoved);
+
+      const filteredFiles = authenticatedDiffCache.removeFilesNotPresentInCurrentCommit(testFilesCache.split(' '));
+      const expectedFilesToBeRemoved = ['babel.config.json', '.eslintrc.json'];
       expect(filteredFiles).not.toContain(expectedFilesToBeRemoved);
     });
 
