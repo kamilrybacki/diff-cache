@@ -141,6 +141,8 @@ describe("Test caching mechanisms", () => {
     test("Check if files not present in tree are filtered out", async () => {
       const testFilesCache = await authenticatedDiffCache.load('mockFiles');
 
+      console.log(await authenticatedDiffCache.getCurrentCommitFilesList());
+
       // Mock the current tree API fetch function
       authenticatedDiffCache.getCurrentCommitFilesList = async () => {
         const mockTreeFiles = 'index.ts post.ts pre.ts package.json package-lock.json tsconfig.json';
