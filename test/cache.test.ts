@@ -1,4 +1,4 @@
-import {describe, test, expect, beforeAll, beforeEach} from "@jest/globals";
+import {jest, describe, test, expect, beforeAll, beforeEach} from "@jest/globals";
 import {OctokitResponse} from "@octokit/types";
 import {getOctokit} from "@actions/github";
 import {GitHub} from "@actions/github/lib/utils";
@@ -18,6 +18,7 @@ describe("Test caching mechanisms", () => {
     JSON.stringify({
       bob: "Bob",
       alice: "Alice",
+      mockFiles: "index.ts post.ts pre.ts package.json package-lock.json babel.config.json tsconfig.json .eslintrc.json"
     })
   );
 
@@ -136,6 +137,17 @@ describe("Test caching mechanisms", () => {
         secret_name: process.env.CACHE_SECRET_NAME as string,
       });
     };
+
+    test("Check if files not present in tree are fitlered out", () => {
+      authenticatedDiffCache.getCurrentCommitFilesList = async () => {
+        const mockTreeFiles = 'index.ts post.ts pre.ts package.json package-lock.json tsconfig.json';
+        await new Promise(res => setTimeout(res, 1000));
+        return mockTreeFiles.split(' ');
+      };
+      const expectedFilesToBeRemoved = 'babel.config.json .eslintrc.json'.split(' ');
+      const filteredFiles = authenticatedDiffCache.removeFilesNotPresentInCurrentCommit(expectedFilesToBeRemoved);
+      expect(filteredFiles).not.toContain(expectedFilesToBeRemoved);
+    });
 
     test("Load, modify and save cache", async () => {
       const bobEntry = authenticatedDiffCache.load('bob');

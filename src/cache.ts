@@ -230,6 +230,11 @@ class DiffCache {
     }
   };
 
+  removeFilesNotPresentInCurrentCommit = async function (this: DiffCache, files: string[]): Promise<string[]> {
+    const currentCommitFiles = await this.getCurrentCommitFilesList();
+    return files.filter((file: string) => currentCommitFiles.includes(file));
+  };
+
   getCurrentCommitFilesList = async function (this: DiffCache): Promise<string[]> {
     return await this.authenticatedAPI.request('GET /repos/{owner}/{repo}/git/trees/{commit}?recursive=1', {
         owner: context.repo.owner,
