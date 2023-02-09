@@ -20,7 +20,8 @@ const run = async () => {
           core.info(`Cached files: ${cachedFiles}`);
           core.info(`Staged files: ${stagedFiles}`);
           if (stagedFiles.length) {
-            const allFiles = `${presentCachedFiles} ${stagedFiles}`.split(' ');
+            const presentStagedFiles = await cache.removeFilesNotPresentInCurrentCommit(stagedFiles.split(' '));
+            const allFiles = `${presentCachedFiles} ${presentStagedFiles}`.split(' ');
             const filesToCache = [
               ...new Set(allFiles.filter((file: string) => file.length))
             ];
