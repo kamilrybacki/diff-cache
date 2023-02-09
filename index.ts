@@ -16,34 +16,35 @@ const run = async () => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
           const cachedFiles = await cache.load(cacheTag);
+          const presentCachedFiles = await cache.removeFilesNotPresentInCurrentCommit(cachedFiles.split(' '));
           core.info(`Cached files: ${cachedFiles}`);
           core.info(`Staged files: ${stagedFiles}`);
-          if (stagedFiles.length) {
-            const allFiles = `${cachedFiles} ${stagedFiles}`.split(' ');
-            const allPresentFiles = await cache.removeFilesNotPresentInCurrentCommit(allFiles);
-            const filesToCache = [
-              ...new Set(allPresentFiles.filter((file: string) => file.length))
-            ];
-            if(filesToCache.length) {
-              const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);
-              if (incorrect_entires.length > 0) {
-                core.info(`Incorrect entries: ${incorrect_entires}. Removing from cache list.`)
-              }
-              const cleanCache = filesToCache
-                                .filter((file: string) => !incorrect_entires.includes(file))
-                                .join(' ');
-              if (cleanCache.length && cleanCache!== cachedFiles) {
-                core.info(`Files to cache: ${cleanCache}`);
-                await cache.save(cacheTag, cleanCache);
-              } else {
-                core.info('No files to cache!');
-              }
+          const presentStagedFiles = await cache.removeFilesNotPresentInCurrentCommit(stagedFiles.split(' '));
+          const allFiles = `${presentCachedFiles} ${presentStagedFiles}`.split(' ');
+          const filesToCache = [
+            ...new Set(allFiles.filter((file: string) => file.length))
+          ];
+          core.info(`Files to cache: ${filesToCache.join(' ')}`)
+          if(filesToCache.length) {
+            const incorrect_entires = cache.validateFiles(filesToCache, include, exclude);
+            if (incorrect_entires.length > 0) {
+              core.info(`Incorrect entries: ${incorrect_entires}. Removing from cache list.`)
+            }
+            const cleanCache = filesToCache
+                              .filter((file: string) => !incorrect_entires.includes(file))
+                              .join(' ');
+            if (cleanCache.length && cleanCache!== cachedFiles) {
+              core.info(`Files to cache: ${cleanCache}`);
+              await cache.save(cacheTag, cleanCache);
             } else {
               core.info('No files to cache!');
             }
+          } else {
+            core.info('No files to cache!');
           }
         });
   });
+  core.info('DiffCache finished!')
 };
 
 run();

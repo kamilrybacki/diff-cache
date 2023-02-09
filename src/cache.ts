@@ -250,7 +250,7 @@ class DiffCache {
         })
         .then((tree: GitTreeAPIEntryData[]) => tree.map((entry: GitTreeAPIEntryData) => entry.path))
         .catch((error: Error) => {
-          throw new Error(`Unable to access commit tree paths from API response: ${error.message}`);
+          throw new Error(`Unable to access tree paths from API response: ${error.message}`);
         }
       );
   };
