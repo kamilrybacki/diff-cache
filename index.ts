@@ -16,13 +16,13 @@ const run = async () => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
           const cachedFiles = await cache.load(cacheTag);
+          const presentCachedFiles = await cache.removeFilesNotPresentInCurrentCommit(cachedFiles.split(' '));
           core.info(`Cached files: ${cachedFiles}`);
           core.info(`Staged files: ${stagedFiles}`);
           if (stagedFiles.length) {
-            const allFiles = `${cachedFiles} ${stagedFiles}`.split(' ');
-            const allPresentFiles = await cache.removeFilesNotPresentInCurrentCommit(allFiles);
+            const allFiles = `${presentCachedFiles} ${stagedFiles}`.split(' ');
             const filesToCache = [
-              ...new Set(allPresentFiles.filter((file: string) => file.length))
+              ...new Set(allFiles.filter((file: string) => file.length))
             ];
             core.info(`Files to cache: ${filesToCache.join(' ')}`)
             if(filesToCache.length) {
