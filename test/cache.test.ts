@@ -154,7 +154,7 @@ describe("Test caching mechanisms", () => {
     });
 
     test("Load, modify and save cache", async () => {
-      const bobEntry = authenticatedDiffCache.load('bob');
+      const bobEntry = await authenticatedDiffCache.load('bob');
       expect(bobEntry).toBe('Bob');
       await authenticatedDiffCache.save('bob', 'Bobby')
         .then(async () => {
