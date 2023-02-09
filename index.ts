@@ -15,7 +15,7 @@ const run = async () => {
     .then(async (cache: DiffCache) => {
       await cache.diff(include, exclude)
         .then(async (stagedFiles: string) => {
-          const cachedFiles = cache.load(cacheTag);
+          const cachedFiles = await cache.load(cacheTag);
           core.info(`Cached files: ${cachedFiles}`);
           core.info(`Staged files: ${stagedFiles}`);
           if (stagedFiles.length) {

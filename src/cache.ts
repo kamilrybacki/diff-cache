@@ -204,7 +204,7 @@ class DiffCache {
     return this.encryptor.to_base64(encryptedBytes, base64_variant);
   };
 
-  load = async function (this: DiffCache, tag: string): string {
+  load = async function (this: DiffCache, tag: string): Promise<string> {
     if (!this.cache) await this.lazyLoadCache();
     const currentCache = this.cache as {[key: string]: string};
     return Object.hasOwn(currentCache, tag) ? currentCache[tag] : '';

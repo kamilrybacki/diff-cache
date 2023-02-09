@@ -138,8 +138,8 @@ describe("Test caching mechanisms", () => {
       });
     };
 
-    test("Check if files not present in tree are filtered out", () => {
-      const testFilesCache = authenticatedDiffCache.load('mockFiles');
+    test("Check if files not present in tree are filtered out", async () => {
+      const testFilesCache = await authenticatedDiffCache.load('mockFiles');
 
       // Mock the current tree API fetch function
       authenticatedDiffCache.getCurrentCommitFilesList = async () => {
