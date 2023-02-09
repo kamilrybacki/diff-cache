@@ -1,4 +1,4 @@
-import {jest, describe, test, expect, beforeAll, beforeEach} from "@jest/globals";
+import {describe, test, expect, beforeAll, beforeEach} from "@jest/globals";
 import {OctokitResponse} from "@octokit/types";
 import {getOctokit} from "@actions/github";
 import {GitHub} from "@actions/github/lib/utils";

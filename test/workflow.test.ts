@@ -3,7 +3,7 @@ import {getOctokit} from "@actions/github";
 import {GitHub} from "@actions/github/lib/utils";
 import {OctokitResponse} from "@octokit/types";
 import ActiveWorkflowFileReader from "../src/workflow";
-import { WorkflowFileAPIEntryData } from '../src/types';
+import { GitTreeAPIEntryData } from '../src/types';
 import * as filesystem from 'fs/promises';
 
 type EmojiResponse = OctokitResponse<{[key: string]: string}> | undefined
@@ -38,7 +38,7 @@ describe("Test workflow file reading", () => {
 
   describe("Check if it is possible to fetch workflow file contents", () => {
     let workflowFilePath: string;
-    let currentCommitTree: WorkflowFileAPIEntryData[];
+    let currentCommitTree: GitTreeAPIEntryData[];
 
     beforeAll(async () => {
       workflowFilePath = await workflowFileHandler.getTriggeredWorkflowFilePath();
