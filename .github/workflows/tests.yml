@@ -79,6 +79,13 @@ jobs:
           exit 1
         fi
         echo "Files found: ${{ steps.diff-cache.outputs.files }}"
+    - name: Check if there are commas present due to bad concatenation
+      run: |
+        if [[ "${{ steps.diff-cache.outputs.files }}" == *","* ]]; then
+          echo "Commas found. Check index.ts for concatenation errors."
+          exit 1
+        fi
+        echo "No commas found"
 
   post-action-tests:
     runs-on: ubuntu-latest

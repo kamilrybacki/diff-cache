@@ -68,11 +68,11 @@ describe("Test caching mechanisms", () => {
     });
 
     const checkWhichFilesHaveChangedAtThisCommit = async (): Promise<string[]> => {
-      return await authenticatedOctokit.rest.repos.compareCommits({
+      const {source, target} = DiffCache.determineDiffStates()
+      return await authenticatedOctokit.rest.repos.compareCommitsWithBasehead({
         owner: context.repo.owner,
         repo: context.repo.repo,
-        base: authenticatedDiffCache.source,
-        head: authenticatedDiffCache.target,
+        basehead: `${source}...${target}`
       })
         .then(({data}: {data: CommitComparisonResponse}) => {
           if (data.files === undefined) {
