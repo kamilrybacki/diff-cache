@@ -113,6 +113,7 @@ jobs:
 
           const cache = process.env.DIFF_CACHE;
           const cacheDecoded = LZString.decompress(cache);
+          console.log(cacheDecoded)
           const cacheParsed = JSON.parse(cacheDecoded);
           return cacheParsed['all'];
         result-encoding: string
