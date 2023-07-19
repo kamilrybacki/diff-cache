@@ -1,6 +1,6 @@
 name: 'DiffCache'
 author: 'Kamil Rybacki'
-description: 'Finds files that have changed since last code SUCCESSFUL workflow.'
+description: 'Finds files that have changed since last SUCCESSFUL workflow.'
 branding:
   icon: 'eye'
   color: 'green'
